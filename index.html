@@ -207,6 +207,7 @@
     let isExporting = false;
     let globalStep = "";
     let playlistStep = 0;
+    let playlistTotal = 0;
     let trackStep = 0;
     let trackTotal = 0;
 
@@ -226,8 +227,6 @@
     function loadSpotifyConfig() {
         XHR('config.json', function (response) {
             spotifyConfig = JSON.parse(response).spotifyConfig;
-            console.log("LOADED CONFIG...");
-            console.log(spotifyConfig);
         });
     }
 
@@ -239,11 +238,9 @@
             $('#loadingTitle').html('Please wait. Loading your playlists and tracks ...');
             refreshPlaylist(function () {
                 refreshMyMusicTracks(function () {
-                    refreshStarredTracks(function () {
-                        $('#loadingTitle').html('Finished loading, you now might want to export or import.');
-                        isExporting = false;
-                        callback();
-                    });
+                    $('#loadingTitle').html('Finished loading, you now might want to export or import.');
+                    isExporting = false;
+                    callback();
                 });
             });
         }
@@ -263,18 +260,18 @@
         $('#playlistTotal').html(playlistTotal);
         $('#trackStep').html(trackStep);
         $('#trackTotal').html(trackTotal);
-        var progress = 0;
+        let progress = 0;
         if (trackTotal > 0) {
-            var progress = Math.floor(((trackStep / trackTotal) * 100));
+            progress = Math.floor(((trackStep / trackTotal) * 100));
         }
-        $('#progressBar').css('width', progress + '%')
+        $('#progressBar').css('width', progress + '%');
         if (typeof collections !== 'undefined' && !makingChanges) {
-            var set = collectionProperties(collections);
+            let set = collectionProperties(collections);
             $('#loadingPlaylists').html("" + set.playlistCount + " playlists");
             $('#loadingTracks').html("" + set.trackCount + " tracks");
         }
         if (typeof importColl !== 'undefined') {
-            var set2 = collectionProperties(importColl);
+            let set2 = collectionProperties(importColl);
             $('#filePlaylists').html("" + set2.playlistCount + " playlists");
             $('#fileTracks').html("" + set2.trackCount + " tracks");
         }
@@ -301,13 +298,9 @@
     }
 
     function authCallback(event) {
-        console.log("CAUGHT EVENT");
-        console.log(event);
         if (event.origin !== spotifyConfig.uri) {
-            console.log("Origin is different from config URI");
             return;
         }
-        console.log("Is authwindow open? -> ", authWindow);
         if (authWindow) {
             authWindow.close();
         }
@@ -315,23 +308,22 @@
     }
 
     function urlEncodeSet(set) {
-        var comps = [];
-        for (var i in set) {
+        let comps = [];
+        for (let i in set) {
             if (set.hasOwnProperty(i)) {
                 comps.push(encodeURIComponent(i) + "=" + encodeURIComponent(set[i]));
             }
         }
-        var string = comps.join("&");
-        return string;
+        return comps.join("&");
     }
 
     function download(filename, text) {
-        var pom = document.createElement('a');
+        let pom = document.createElement('a');
         pom.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
         pom.setAttribute('download', filename);
 
         if (document.createEvent) {
-            var event = document.createEvent('MouseEvents');
+            let event = document.createEvent('MouseEvents');
             event.initEvent('click', true, true);
             pom.dispatchEvent(event);
         }
@@ -342,14 +334,14 @@
 
     function readFile(evt) {
         //Retrieve the first (and only!) File from the FileList object
-        var f = evt.target.files[0];
+        let f = evt.target.files[0];
 
         if (f) {
             $('#fileName').html(f.name);
 
-            var r = new FileReader();
+            let r = new FileReader();
             r.onload = function (e) {
-                var json = e.target.result;
+                let json = e.target.result;
 
                 importColl = JSON.parse(json);
 
@@ -358,7 +350,7 @@
                 $('#pnlUpload').show();
 
                 compareEverything();
-            }
+            };
             r.readAsText(f);
         } else {
             alert("Failed to load file");
@@ -370,14 +362,11 @@
     }
 
     function collTrackCount(coll) {
-        var count = 0;
-        var keys = _.keys(coll.playlists);
+        let count = 0;
+        let keys = _.keys(coll.playlists);
         $.each(keys, function (index, value) {
             count += coll.playlists[value].tracks.length;
         });
-        if (coll.starred) {
-            count += coll.starred.length;
-        }
         if (coll.saved) {
             count += coll.saved.length;
         }
@@ -385,12 +374,8 @@
     }
 
     function collPlaylistCount(coll) {
-        var keys = _.keys(coll.playlists);
-        var count = keys.length + 1;
-        if (!("importedStarred" in keys)) {
-            count++;
-        }
-        return count;
+        let keys = _.keys(coll.playlists);
+        return keys.length + 1;
     }
 
     function compareEverything() {
@@ -407,25 +392,16 @@
 
                 playlistTotal = collPlaylistCount(importColl);
 
-                // TONOTDO:compare starred -> can not really do that since there is no api to manipulate those
-                // instead we just create a replacement-standard-list
-                globalStep = "Comparing starred tracks";
+                // compare saved
+                globalStep = "Comparing saved tracks";
+                compareIdTracks(importColl.saved, collections.saved, addToSaved);
+                playlistStep += 1;
 
-                makeSureImportedStarredExists(function (proceed) {
-                    if (importColl.starred.length > 0) {
-                        compareUriTracks(importColl.starred, collections.starred, addToStarred);
-                    }
-                    // compare saved
-                    globalStep = "Comparing saved tracks";
-                    compareIdTracks(importColl.saved, collections.saved, addToSaved);
-                    playlistStep += 1;
-
-                    // compare other playlists
-                    var playlistNames = _.keys(importColl.playlists);
-                    globalStep = "Comparing custom playlists";
-                    handlePlaylistCompare(playlistNames.reverse(), function () {
-                        handleTrackUpload();
-                    });
+                // compare playlists
+                let playlistNames = _.keys(importColl.playlists);
+                globalStep = "Comparing playlists";
+                handlePlaylistCompare(playlistNames.reverse(), function () {
+                    handleTrackUpload();
                 });
             }
         }
@@ -454,14 +430,14 @@
     }
 
     function handlePlaylistCompare(names, callback) {
-        var name = names.pop();
+        let name = names.pop();
         if (!name) {
             callback();
             return;
         }
         makeSurePlaylistExists(name, function (proceed) {
             if (proceed) {
-                var playlistId = collections.playlists[name].id;
+                let playlistId = collections.playlists[name].id;
                 compareUriTracks(importColl.playlists[name].tracks, collections.playlists[name].tracks, function (uri) {
                     addToPlaylist(playlistId, uri);
                 });
@@ -480,7 +456,7 @@
             callback(true);
             return;
         }
-        var set = {name: name, public: "true"};
+        let set = {name: name, public: "true"};
         $.ajax({
             method: "POST",
             url: 'https://api.spotify.com/v1/users/' + userId + '/playlists',
@@ -505,21 +481,8 @@
         });
     }
 
-    function makeSureImportedStarredExists(callback) {
-        var name = 'importedStarred';
-        makeSurePlaylistExists(name, callback);
-    }
-
-    function addToStarred(trackUri) {
-        var name = 'importedStarred';
-        var playlistId = collections.playlists[name].id;
-        uriInTracks(trackUri, collections.playlists[name].tracks, function (uri) {
-            addToPlaylist(playlistId, uri);
-        });
-    }
-
     function handleSavedRequests(arr, callback) {
-        var url = arr.pop();
+        let url = arr.pop();
         if (url) {
             trackStep += 1;
             $.ajax({
@@ -550,7 +513,7 @@
     }
 
     function handlePlaylistRequests(arr, callback) {
-        var url = arr.pop();
+        let url = arr.pop();
         if (url) {
             trackStep += 1;
             $.ajax({
@@ -578,27 +541,15 @@
         }
     }
 
-    function uriInTracks(uri, tracks, addCallback) {
-        var found = false;
-        $.each(tracks, function (index, value) {
-            if (value.uri == uri) {
-                found = true;
-            }
-        });
-        if (!found) {
-            addCallback(uri);
-        }
-    }
-
     function addToSaved(id) {
         savedQueue.push('https://api.spotify.com/v1/me/tracks?ids=' + id);
     }
 
     function compareUriTracks(imported, stored, addCallback) {
         $.each(imported, function (index, value) {
-            var found = false;
+            let found = false;
             $.each(stored, function (index2, value2) {
-                if (value.uri == value2.uri) {
+                if (value.uri === value2.uri) {
                     found = true;
                 }
             });
@@ -610,9 +561,9 @@
 
     function compareIdTracks(imported, stored, addCallback) {
         $.each(imported, function (index, value) {
-            var found = false;
+            let found = false;
             $.each(stored, function (index2, value2) {
-                if (value.id == value2.id) {
+                if (value.id === value2.id) {
                     found = true;
                 }
             });
@@ -628,17 +579,15 @@
             $('#pnlImport').show();
         });
         $('#btnExport').click(function () {
-            var json = JSON.stringify(collections);
-            var d = new Date();
-            var time = '@' + d.getFullYear() + '_' + (d.getMonth() + 1) + '_' + d.getDate();
+            let json = JSON.stringify(collections);
+            let d = new Date();
+            let time = '@' + d.getFullYear() + '_' + (d.getMonth() + 1) + '_' + d.getDate();
             download(name + time + '.json', json);
         });
         $('#fileImport').change(readFile);
     }
 
     function handleAuth(accessToken) {
-        console.log("ACCESS TOKEN");
-        console.log(accessToken);
         token = accessToken;
         // fetch my public playlists
         $.ajax({
@@ -665,30 +614,6 @@
         collections.saved = [];
         playlistStep += 1;
         loadTrackChunks('https://api.spotify.com/v1/me/tracks', collections.saved, callback);
-    }
-
-    function refreshStarredTracks(callback) {
-        collections.starred = [];
-        playlistStep += 1;
-        loadStarred('https://api.spotify.com/v1/users/' + userId + '/starred', collections.starred, callback)
-    }
-
-    function loadStarred(url, arr, callback) {
-        $.ajax({
-            url: url,
-            headers: {
-                'Authorization': 'Bearer ' + token
-            },
-            success: function (data) {
-                console.log("loadStarred func -> ", data);
-                if (!data) return;
-                if ('tracks' in data) {
-                    loadTrackChunks(data.tracks.href, arr, callback);
-                } else {
-                    callback();
-                }
-            }
-        });
     }
 
     function loadTrackChunksWithTimeout(url, arr, callback, timeout) {
@@ -728,8 +653,8 @@
 
     function refreshPlaylist(callback) {
         collections.playlists = {};
-        var playlists = [];
-        loadPlaylistChunks('https://api.spotify.com/v1/users/' + userId + '/playlists', playlists, function () {
+        let playlists = [];
+        loadPlaylistChunks('https://api.spotify.com/v1/me/playlists', playlists, function () {
             handlePlaylistTracks(playlists, collections.playlists, callback);
         });
     }
@@ -773,7 +698,7 @@
     }
 
     function handlePlaylistTracks(arr, result, callback) {
-        var item = arr.pop();
+        let item = arr.pop();
         if (!item) {
             return callback();
         }
@@ -782,7 +707,7 @@
         loadTrackChunks(item.href, item.tracks, function () {
             delete item.href;
             result[item.name] = item;
-            if (arr.length == 0) {
+            if (arr.length === 0) {
                 callback();
             } else {
                 handlePlaylistTracks(arr, result, callback);
