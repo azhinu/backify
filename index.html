@@ -217,16 +217,18 @@
     let makingChanges = false;
 
     function init() {
-        $('#login').click(login);
-        window.addEventListener("message", authCallback, false);
-        bindControls();
-        refreshProgress();
-        loadSpotifyConfig();
+        loadConfig(function (response) {
+            $('#login').click(login);
+            window.addEventListener("message", authCallback, false);
+            bindControls();
+            refreshProgress();
+        });
     }
 
-    function loadSpotifyConfig() {
+    function loadConfig(callback) {
         XHR('config.json', function (response) {
             spotifyConfig = JSON.parse(response).spotifyConfig;
+            callback();
         });
     }
 
