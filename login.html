@@ -10,6 +10,8 @@
 
     window.onload = function () {
         loadSpotifyConfig();
+        console.log("WINDOW LOCATION");
+        console.log(window.location);
         let target = window.self === window.top ? window.opener : window.parent;
         let hash = window.location.hash;
         if (hash) {

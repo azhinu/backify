@@ -661,7 +661,8 @@ function loadStarred(url, arr, callback) {
         headers: {
             'Authorization': 'Bearer ' + token
         },
-        success: function(data) {         
+        success: function (data) {
+            console.log("loadStarred func -> ", data);
             if (!data) return;
             if ('tracks' in data) {
                 loadTrackChunks(data.tracks.href, arr, callback);
