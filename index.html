@@ -238,6 +238,7 @@
             $('#loadingTitle').html('Please wait. Loading your playlists and tracks ...');
             refreshPlaylist(function () {
                 refreshMyMusicTracks(function () {
+                    console.log("Finished loading...");
                     $('#loadingTitle').html('Finished loading, you now might want to export or import.');
                     isExporting = false;
                     callback();
@@ -505,11 +506,11 @@
         }
     }
 
-    function handlePlaylistRequestsWithTimeout(arr, callback) {
+    function handlePlaylistRequestsWithTimeout(arr, callback, timeout) {
         setTimeout(function () {
-            console.log("Fast runners are dead runners");
+            console.log("Timeout -> ", timeout);
             handlePlaylistRequests(arr, callback)
-        }, spotifyConfig.slowdown_import);
+        }, timeout);
     }
 
     function handlePlaylistRequests(arr, callback) {
@@ -534,7 +535,7 @@
                 }
             })
                 .always(function () {
-                    handlePlaylistRequestsWithTimeout(arr, callback);
+                    handlePlaylistRequestsWithTimeout(arr, callback, spotifyConfig.slowdown_import);
                 })
         } else {
             callback();
@@ -604,6 +605,7 @@
                 $('#pnlLoggedOut').hide();
 
                 refreshTrackData(function () {
+                    console.log("Everything was done correctly!")
                     $('#pnlAction').show();
                 });
             }
@@ -617,10 +619,10 @@
     }
 
     function loadTrackChunksWithTimeout(url, arr, callback, timeout) {
+        console.log("Timeout -> ", timeout);
         setTimeout(function () {
-            console.log("Taking breath, not to fast my cheetah");
             loadTrackChunks(url, arr, callback)
-        }, spotifyConfig.slowdown_export);
+        }, timeout);
     }
 
     function loadTrackChunks(url, arr, callback) {
@@ -643,7 +645,7 @@
                     arr.push({id: data.track.id, uri: data.track.uri});
                 }
                 if (data.next) {
-                    loadTrackChunksWithTimeout(data.next, arr, callback);
+                    loadTrackChunksWithTimeout(data.next, arr, callback, spotifyConfig.slowdown_export);
                 } else {
                     callback();
                 }
