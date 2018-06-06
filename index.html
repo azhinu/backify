@@ -304,8 +304,10 @@
         console.log("CAUGHT EVENT");
         console.log(event);
         if (event.origin !== spotifyConfig.uri) {
+            console.log("Origin is different from config URI");
             return;
         }
+        console.log("Is authwindow open? -> ", authWindow);
         if (authWindow) {
             authWindow.close();
         }
@@ -645,7 +647,7 @@
                 'Authorization': 'Bearer ' + accessToken
             },
             success: function (response) {
-                var user_id = response.id.toLowerCase();
+                let user_id = response.id.toLowerCase();
                 userId = user_id;
                 name = user_id;
 
