@@ -5,6 +5,6 @@ function XHR(file, callback) {
             callback(xhr.responseText);
         }
     };
-    xhr.open('GET', file, false);
+    xhr.open('GET', file, true);
     xhr.send();
 }
