@@ -4,7 +4,7 @@
         <meta http-equiv="content-type" content="text/html" charset="UTF-8">
         <title>SpotMyBackup</title>
 
-        <script type="text/javascript" src="config.json"></script>
+        <script type="text/javascript" src="helper.js"></script>
         <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.2/underscore-min.js"></script>
         <link href='http://fonts.googleapis.com/css?family=Lato:100,300,400,700,900,100italic,300italic,400italic,700italic,900italic&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
@@ -123,7 +123,7 @@
 
         <div class="container">
             <div class="heading">
-                <span class="title-bold">Spot</span><span class="title-light">My</span><span class="title-bold">Backup</span>
+                <span class="title-bold">Backify</span>
                 <br/>
                 <br/>
                 <div id="pnlLoggedOut">
@@ -183,25 +183,41 @@
         <script type='text/javascript'>
 
 
-var conf = JSON.parse(config);
+            let spotifyConfig;
 
-var authWindow = null;
-var token = null;
-var userId = '';
-var collections = {};
-var name = 'spotify';
+            let authWindow = null;
+            let token = null;
+            let userId = '';
+            let collections = {};
+            let name = 'spotify';
 
-var isImporting = false;
-var isExporting = false;
-var globalStep = "";
-var playlistStep = 0;
-var trackStep = 0;
-var trackTotal = 0;
+            let isImporting = false;
+            let isExporting = false;
+            let globalStep = "";
+            let playlistStep = 0;
+            let trackStep = 0;
+            let trackTotal = 0;
 
-var playlistQueue = [];
-var savedQueue = [];
+            let playlistQueue = [];
+            let savedQueue = [];
 
-var makingChanges = false;
+            let makingChanges = false;
+
+            function init() {
+                $('#login').click(login);
+                window.addEventListener("message", authCallback, false);
+                bindControls();
+                refreshProgress();
+                loadSpotifyConfig();
+            }
+
+            function loadSpotifyConfig() {
+                XHR('config.json', function (response) {
+                    spotifyConfig = JSON.parse(response).spotifyConfig;
+                    console.log("LOADED CONFIG...");
+                    console.log(spotifyConfig);
+                });
+            }
 
 function refreshTrackData(callback) {
     if (!isExporting && !isImporting) {
@@ -254,16 +270,16 @@ function refreshProgress() {
 }
 
 function login() {
-    var width = 480, height = 640;
-    var left = (screen.width / 2) - (width / 2);
-    var top = (screen.height / 2) - (height / 2);
+    let width = 480, height = 640;
+    let left = (screen.width / 2) - (width / 2);
+    let top = (screen.height / 2) - (height / 2);
 
-    var set = {
-      client_id: conf.client_id,
-      redirect_uri: conf.redirect_uri,
-      scope: 'playlist-read playlist-read-private playlist-modify-public playlist-modify-private user-library-read user-library-modify',
-      response_type: 'token',
-      show_dialog: 'true'
+    let set = {
+        client_id: spotifyConfig.client_id,
+        redirect_uri: spotifyConfig.redirect_uri,
+        scope: spotifyConfig.scope,
+        response_type: spotifyConfig.response_type,
+        show_dialog: spotifyConfig.show_dialog
     };
     authWindow = window.open(
         "https://accounts.spotify.com/authorize?" + urlEncodeSet(set),
@@ -273,7 +289,7 @@ function login() {
 }
 
 function authCallback(event){
-    if (event.origin !== conf.uri) {
+    if (event.origin !== spotifyConfig.uri) {
         return;
     }
     if (authWindow) {
@@ -510,9 +526,11 @@ function handleSavedRequests(arr, callback) {
     }
 }
 
-
 function handlePlaylistRequestsWithTimeout(arr, callback) {
-        setTimeout(function() { console.log("Fast runners are dead runners"); handlePlaylistRequests(arr, callback) }, conf.slowdown_import);
+    setTimeout(function () {
+        console.log("Fast runners are dead runners");
+        handlePlaylistRequests(arr, callback)
+    }, spotifyConfig.slowdown_import);
 }
 
 function handlePlaylistRequests(arr, callback) {
@@ -655,7 +673,10 @@ function loadStarred(url, arr, callback) {
 }
 
 function loadTrackChunksWithTimeout(url, arr, callback, timeout) {
-        setTimeout(function() { console.log("Taking breath, not to fast my cheetah"); loadTrackChunks(url, arr, callback) }, conf.slowdown_export);
+    setTimeout(function () {
+        console.log("Taking breath, not to fast my cheetah");
+        loadTrackChunks(url, arr, callback)
+    }, spotifyConfig.slowdown_export);
 }
 
 function loadTrackChunks(url, arr, callback) {
@@ -755,10 +776,7 @@ window.onload = function() {
         // MSIE
         $('#pnlLoggedOut').html('Please use Firefox or Chrome, due to a bug in Internet Explorer');
     } else {
-        $('#login').click(login);
-        window.addEventListener("message", authCallback, false);
-        bindControls();
-        refreshProgress();
+        init();
     }
 }
 

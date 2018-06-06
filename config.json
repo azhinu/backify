@@ -1,7 +1,12 @@
-config = '[{
-"uri":"http://www.spotmybackup.com/",
-"redirect_uri":"http://www.spotmybackup.com/login.html",
-"client_id":"[YOUR_TOKEN_HERE]",
-"slowdown_import": 100,
-"slowdown_export": 100
-}]'
+{
+  "spotifyConfig": {
+    "uri": "https://rwig.gitlab.io/backify/",
+    "redirect_uri": "https://rwig.gitlab.io/backify/login.html",
+    "client_id": "c99b1c6aa2d8465b98a2e4b442c474f2",
+    "scope": "playlist-read playlist-read-private playlist-modify-public playlist-modify-private user-library-read user-library-modify",
+    "response_type": "token",
+    "show_dialog": "true",
+    "slowdown_import": 100,
+    "slowdown_export": 100
+  }
+}
