@@ -13,10 +13,14 @@
         console.log("WINDOW LOCATION");
         console.log(window.location);
         let target = window.self === window.top ? window.opener : window.parent;
+        console.log("TARGET");
+        console.log(target);
         let hash = window.location.hash;
         if (hash) {
             let token = window.location.hash.split('&')[0].split('=')[1];
-            target.postMessage(token, spotifyConfig.uri); //embedded
+            console.log("TOKEN");
+            console.log(token);
+            target.postMessage(token, spotifyConfig.uri);
         }
     };
 
