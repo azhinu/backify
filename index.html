@@ -477,8 +477,7 @@
             success: function (response) {
                 console.log("Response from /me/playlists query", response);
                 if (!response.name) {
-                    console.log("Response didn't come with a playlist name! Aborting...");
-                    callback(false);
+                    console.log("Response didn't come with a playlist name!");
                 }
                 collections.playlists[response.name] = {
                     name: response.name,
