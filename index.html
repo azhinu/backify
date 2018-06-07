@@ -402,6 +402,7 @@
 
                 // compare playlists
                 let playlistNames = _.keys(importColl.playlists);
+                console.log("Comparing playlists now, found in file -> ", playlistNames);
                 globalStep = "Comparing playlists";
                 handlePlaylistCompare(playlistNames.reverse(), function () {
                     handleTrackUpload();
@@ -458,6 +459,7 @@
     }
 
     function makeSurePlaylistExists(name, callback) {
+        console.log("Making sure playlist exists... -> ", name);
         playlistStep += 1;
         if (name in collections.playlists) {
             callback(true);
