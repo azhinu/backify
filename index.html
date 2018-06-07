@@ -239,7 +239,6 @@
             $('#pnlLoadingAccount').show();
             $('#loadingTitle').html('Please wait. Loading your playlists and tracks ...');
             refreshPlaylist(function () {
-                console.log("Finished loading playlists -> ", collections.playlists);
                 refreshMyMusicTracks(function () {
                     $('#loadingTitle').html('Finished loading, you now might want to export or import.');
                     isExporting = false;
@@ -401,7 +400,6 @@
 
                 // compare playlists
                 let playlistNames = _.keys(importColl.playlists);
-                console.log("Comparing playlists now, found in file -> ", playlistNames);
                 globalStep = "Comparing playlists";
                 handlePlaylistCompare(playlistNames.reverse(), function () {
                     handleTrackUpload();
@@ -440,10 +438,6 @@
         }
         makeSurePlaylistExists(name, function (proceed) {
             if (proceed) {
-                console.log("COLLECTIONS PLAYLIST", collections.playlists);
-                console.log("IMPORT COLL PLAYLIST", importColl.playlists);
-                console.log("Checking for playlist name -> ", name);
-                console.log("PLaylist from coll -> ", collections.playlists[name]);
                 let playlistId = collections.playlists[name].id;
                 compareUriTracks(importColl.playlists[name].tracks, collections.playlists[name].tracks, function (uri) {
                     addToPlaylist(playlistId, uri);
@@ -527,12 +521,6 @@
                 contentType: 'application/json',
                 headers: {
                     'Authorization': 'Bearer ' + token
-                },
-                success: function (response) {
-                    // collections.playlists[response.name] = {
-                    //     id: response.id,
-                    //     uri: response.uri
-                    // };
                 },
                 fail: function (jqXHR, textStatus, errorThrown) {
                     console.log(errorThrown);
@@ -670,7 +658,6 @@
             },
             success: function (data) {
                 if (!data) return;
-                console.log("Data returned from playlist query -> ", data);
                 if ('items' in data) {
                     $.each(data.items, function (index, value) {
                         if (value.tracks && value.tracks.href) {
@@ -695,7 +682,6 @@
                 if (data.next) {
                     loadPlaylistChunks(data.next, arr, callback);
                 } else {
-                    console.log("Finished obtaining playlist info, ended up with -> ", arr);
                     callback();
                 }
             }
@@ -703,14 +689,10 @@
     }
 
     function handlePlaylistTracks(arr, result, callback) {
-        console.log("\n\nEntered handlePlaylistTracks...");
-        console.log("arr -> ", arr);
-        console.log("collections.playlist -> ", result);
         let item = arr.pop();
         if (!item) {
             return callback();
         }
-        console.log("item -> ", item);
         playlistStep += 1;
         item.tracks = [];
         loadTrackChunks(item.href, item.tracks, function () {
