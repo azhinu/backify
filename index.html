@@ -675,6 +675,7 @@
             },
             success: function (data) {
                 if (!data) return;
+                console.log("Data returned from playlist query -> ", data);
                 if ('items' in data) {
                     $.each(data.items, function (index, value) {
                         if (value.tracks && value.tracks.href) {
