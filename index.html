@@ -464,6 +464,7 @@
             callback(true);
             return;
         }
+        console.log("PLaylist is not in current collections, creating right now...");
         let set = {name: name, public: "true"};
         $.ajax({
             method: "POST",
@@ -475,6 +476,10 @@
             },
             success: function (response) {
                 console.log("Response from /me/playlists query", response);
+                if (!response.name) {
+                    console.log("Response didn't come with a playlist name! Aborting...");
+                    callback(false);
+                }
                 collections.playlists[response.name] = {
                     name: response.name,
                     href: response.tracks.href,
