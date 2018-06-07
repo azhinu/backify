@@ -442,6 +442,8 @@
             if (proceed) {
                 console.log("COLLECTIONS PLAYLIST", collections.playlists);
                 console.log("IMPORT COLL PLAYLIST", importColl.playlists);
+                console.log("Checking for playlist name -> ", name);
+                console.log("PLaylist from coll -> ", collections.playlists[name]);
                 let playlistId = collections.playlists[name].id;
                 compareUriTracks(importColl.playlists[name].tracks, collections.playlists[name].tracks, function (uri) {
                     addToPlaylist(playlistId, uri);
