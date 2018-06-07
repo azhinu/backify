@@ -700,6 +700,7 @@
                 if (data.next) {
                     loadPlaylistChunks(data.next, arr, callback);
                 } else {
+                    console.log("Finished obtaining playlist info, ended up with -> ", arr);
                     callback();
                 }
             }
@@ -707,10 +708,14 @@
     }
 
     function handlePlaylistTracks(arr, result, callback) {
+        console.log("Entered handlePlaylistTracks...");
+        console.log("arr -> ", arr);
+        console.log("collections.playlist -> ", result);
         let item = arr.pop();
         if (!item) {
             return callback();
         }
+        console.log("item -> ", item);
         playlistStep += 1;
         item.tracks = [];
         loadTrackChunks(item.href, item.tracks, function () {
