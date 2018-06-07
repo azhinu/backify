@@ -458,13 +458,11 @@
     }
 
     function makeSurePlaylistExists(name, callback) {
-        console.log("\n\nMaking sure playlist exists... -> ", name);
         playlistStep += 1;
         if (name in collections.playlists) {
             callback(true);
             return;
         }
-        console.log("PLaylist is not in current collections, creating right now...");
         let set = {name: name, public: "true"};
         $.ajax({
             method: "POST",
@@ -475,12 +473,8 @@
                 'Authorization': 'Bearer ' + token
             },
             success: function (response) {
-                console.log("Response from /me/playlists query", response);
-                if (!response.name) {
-                    console.log("Response didn't come with a playlist name!");
-                }
-                collections.playlists[response.name] = {
-                    name: response.name,
+                collections.playlists[name] = {
+                    name: name,
                     href: response.tracks.href,
                     id: response.id,
                     tracks: []
