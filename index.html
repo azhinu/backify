@@ -66,6 +66,10 @@
             margin: 0 0 1em;
         }
 
+        .button-main:disabled {
+            background: #dddddd;
+        }
+
         .button-big {
             margin-left: 150px;
         }
@@ -217,11 +221,18 @@
     let makingChanges = false;
 
     function init() {
-        loadConfig(function (response) {
-            $('#login').click(login);
+        toggleLoginButton();
+        loadConfig(function () {
             window.addEventListener("message", authCallback, false);
             bindControls();
             refreshProgress();
+            toggleLoginButton();
+        });
+    }
+
+    function toggleLoginButton() {
+        $('#login').prop('disabled', function (i, v) {
+            return !v;
         });
     }
 
@@ -567,6 +578,7 @@
     }
 
     function bindControls() {
+        $('#login').click(login);
         $('#btnImport').click(function () {
             $('#pnlAction').hide();
             $('#pnlImport').show();
