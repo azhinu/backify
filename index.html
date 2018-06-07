@@ -239,8 +239,8 @@
             $('#pnlLoadingAccount').show();
             $('#loadingTitle').html('Please wait. Loading your playlists and tracks ...');
             refreshPlaylist(function () {
+                console.log("Finished loading playlists -> ", collections.playlists);
                 refreshMyMusicTracks(function () {
-                    console.log("Finished loading...");
                     $('#loadingTitle').html('Finished loading, you now might want to export or import.');
                     isExporting = false;
                     callback();
@@ -459,7 +459,7 @@
     }
 
     function makeSurePlaylistExists(name, callback) {
-        console.log("Making sure playlist exists... -> ", name);
+        console.log("\n\nMaking sure playlist exists... -> ", name);
         playlistStep += 1;
         if (name in collections.playlists) {
             callback(true);
@@ -468,14 +468,14 @@
         let set = {name: name, public: "true"};
         $.ajax({
             method: "POST",
-            url: 'https://api.spotify.com/v1/users/' + userId + '/playlists',
+            url: 'https://api.spotify.com/v1/me/playlists',
             data: JSON.stringify(set),
             contentType: 'application/json',
             headers: {
                 'Authorization': 'Bearer ' + token
             },
             success: function (response) {
-                alert(JSON.stringify(response));
+                console.log("Response from /me/playlists query", response);
                 collections.playlists[response.name] = {
                     name: response.name,
                     href: response.tracks.href,
@@ -516,7 +516,6 @@
 
     function handlePlaylistRequestsWithTimeout(arr, callback, timeout) {
         setTimeout(function () {
-            console.log("Timeout -> ", timeout);
             handlePlaylistRequests(arr, callback)
         }, timeout);
     }
@@ -598,7 +597,6 @@
 
     function handleAuth(accessToken) {
         token = accessToken;
-        // fetch my public playlists
         $.ajax({
             url: 'https://api.spotify.com/v1/me',
             headers: {
@@ -613,7 +611,6 @@
                 $('#pnlLoggedOut').hide();
 
                 refreshTrackData(function () {
-                    console.log("Everything was done correctly!")
                     $('#pnlAction').show();
                 });
             }
@@ -627,7 +624,6 @@
     }
 
     function loadTrackChunksWithTimeout(url, arr, callback, timeout) {
-        console.log("Timeout -> ", timeout);
         setTimeout(function () {
             loadTrackChunks(url, arr, callback)
         }, timeout);
@@ -710,7 +706,7 @@
     }
 
     function handlePlaylistTracks(arr, result, callback) {
-        console.log("Entered handlePlaylistTracks...");
+        console.log("\n\nEntered handlePlaylistTracks...");
         console.log("arr -> ", arr);
         console.log("collections.playlist -> ", result);
         let item = arr.pop();
