@@ -588,6 +588,7 @@
                 'Authorization': 'Bearer ' + accessToken
             },
             success: function (response) {
+                console.log('Logged in -> ', response);
                 let user_id = response.id.toLowerCase();
                 userId = user_id;
                 name = user_id;
