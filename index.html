@@ -201,7 +201,7 @@
     let token = null;
     let userId = '';
     let collections = {};
-    let name = 'spotify';
+    let email;
 
     let isImporting = false;
     let isExporting = false;
@@ -575,7 +575,8 @@
             let json = JSON.stringify(collections);
             let d = new Date();
             let time = '@' + d.getFullYear() + '_' + (d.getMonth() + 1) + '_' + d.getDate();
-            download(name + time + '.json', json);
+            let email = email.substring(0, email.lastIndexOf("@"));
+            download(email + time + '.json', json);
         });
         $('#fileImport').change(readFile);
     }
@@ -588,12 +589,10 @@
                 'Authorization': 'Bearer ' + accessToken
             },
             success: function (response) {
-                console.log('Logged in -> ', response);
-                let user_id = response.id.toLowerCase();
-                userId = user_id;
-                name = user_id;
+                userId = response.id.toLowerCase();
+                email = response.email.toLowerCase();
 
-                $('#userName').html(name);
+                $('#userName').html(email);
                 $('#pnlLoggedOut').hide();
 
                 refreshTrackData(function () {
