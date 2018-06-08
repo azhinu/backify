@@ -81,6 +81,7 @@
     let authWindow = null;
     let token = null;
     let collections = {};
+    let importColl = {};
     let userId;
     let email;
 
@@ -303,6 +304,8 @@
                     alert("This file is not a valid JSON file. Try again.");
                     return;
                 }
+
+                console.log('Read file, import coll -> ', importColl);
 
                 $('#fileName').html(f.name);
                 $('#pnlAction').hide();
