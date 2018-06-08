@@ -153,6 +153,7 @@
         <br/>
         <div id="loadingPlaylists"></div>
         <div id="loadingTracks"></div>
+        <div id="loadingArtists"></div>
         <br/>
         <div id="loadingTitle"></div>
     </div>
@@ -175,6 +176,7 @@
             <br/>
             <div id="filePlaylists"></div>
             <div id="fileTracks"></div>
+            <div id="fileArtists"></div>
         </div>
     </div>
     <div id="pnlUpload" style="font-size: 16px; overflow: hidden; display: none;" class="heading">
@@ -248,12 +250,16 @@
             isExporting = true;
             resetCounter();
             $('#pnlLoadingAccount').show();
-            $('#loadingTitle').html('Please wait. Loading your playlists and tracks ...');
+            $('#loadingTitle').html('Please wait. Loading your playlists ...');
             refreshPlaylist(function () {
+                $('#loadingTitle').html('Please wait. Loading your tracks ...');
                 refreshMyMusicTracks(function () {
-                    $('#loadingTitle').html('Finished loading, you now might want to export or import.');
-                    isExporting = false;
-                    callback();
+                    $('#loadingTitle').html('Please wait. Loading your artists ...');
+                    refreshFollowedArtists(function () {
+                        $('#loadingTitle').html('Finished loading, you now might want to export or import.');
+                        isExporting = false;
+                        callback();
+                    });
                 });
             });
         }
@@ -282,11 +288,14 @@
             let set = collectionProperties(collections);
             $('#loadingPlaylists').html("" + set.playlistCount + " playlists");
             $('#loadingTracks').html("" + set.trackCount + " tracks");
+            $('#loadingArtists').html("" + set.artistCount + " artists");
         }
         if (typeof importColl !== 'undefined') {
             let set2 = collectionProperties(importColl);
             $('#filePlaylists').html("" + set2.playlistCount + " playlists");
             $('#fileTracks').html("" + set2.trackCount + " tracks");
+            $('#fileArtists').html("" + set2.artistCount + " artists");
+
         }
         setTimeout(refreshProgress, 1000);
     }
@@ -371,7 +380,11 @@
     }
 
     function collectionProperties(coll) {
-        return {playlistCount: collPlaylistCount(coll), trackCount: collTrackCount(coll)};
+        return {
+            playlistCount: collPlaylistCount(coll),
+            trackCount: collTrackCount(coll),
+            artistCount: collArtistCount(coll)
+        };
     }
 
     function collTrackCount(coll) {
@@ -388,6 +401,11 @@
 
     function collPlaylistCount(coll) {
         let keys = _.keys(coll.playlists);
+        return keys.length;
+    }
+
+    function collArtistCount(coll) {
+        let keys = _.keys(coll.artists);
         return keys.length;
     }
 
@@ -714,6 +732,42 @@
                 callback();
             } else {
                 handlePlaylistTracks(arr, result, callback);
+            }
+        });
+    }
+
+    function refreshFollowedArtists(callback) {
+        collections.artists = [];
+        loadArtistChunks('https://api.spotify.com/v1/me/following?type=artist', collections.artists, callback);
+    }
+
+    function loadArtistChunks(url, arr, callback) {
+        $.ajax({
+            url: url,
+            headers: {
+                'Authorization': 'Bearer ' + token
+            },
+            success: function (data) {
+                if (!data) return;
+                console.log('Response from artists query -> ', data);
+
+                if ('items' in data) {
+                    $.each(data.items, function (index, value) {
+                        if (value.id !== null && value.uri !== null) {
+                            arr.push({id: value.id, uri: value.uri});
+                        } else {
+                            console.log("artist is null", value);
+                        }
+                    });
+                } else {
+                    arr.push({id: data.track.id, uri: data.track.uri});
+                }
+
+                if (data.next) {
+                    loadArtistChunks(data.next, arr, callback);
+                } else {
+                    callback();
+                }
             }
         });
     }
