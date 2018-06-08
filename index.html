@@ -265,10 +265,11 @@
                 'Authorization': 'Bearer ' + accessToken
             },
             success: function (response) {
-                this.userId = response.id.toLowerCase();
-                this.email = response.email.toLowerCase();
+                console.log('Logged in successfully -> ', response);
+                userId = response.id.toLowerCase();
+                email = response.email.toLowerCase();
 
-                $('#userName').html(this.email);
+                $('#userName').html(email);
                 $('#pnlLoggedOut').hide();
 
                 refreshTrackData(function () {
@@ -373,11 +374,13 @@
     }
 
     function download() {
+        console.log('Email -> ', email);
+        console.log('User ID -> ', userId);
         let json = JSON.stringify(collections);
         let d = new Date();
         let time = '@' + d.getFullYear() + '_' + (d.getMonth() + 1) + '_' + d.getDate();
-        let email = this.email.substring(0, this.email.lastIndexOf("@"));
-        let filename = email + time + '.json';
+        let emailWithoutDomain = email.substring(0, email.lastIndexOf("@"));
+        let filename = emailWithoutDomain + time + '.json';
         let pom = document.createElement('a');
         pom.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(json));
         pom.setAttribute('download', filename);
@@ -515,7 +518,7 @@
     }
 
     function addToPlaylist(playlistId, trackUri) {
-        playlistQueue.push('https://api.spotify.com/v1/users/' + this.userId + '/playlists/' + playlistId + '/tracks?uris=' + encodeURIComponent(trackUri));
+        playlistQueue.push('https://api.spotify.com/v1/users/' + userId + '/playlists/' + playlistId + '/tracks?uris=' + encodeURIComponent(trackUri));
     }
 
     function makeSurePlaylistExists(name, callback) {
@@ -527,7 +530,7 @@
         let set = {name: name, public: "true"};
         $.ajax({
             method: "POST",
-            url: 'https://api.spotify.com/v1/users/' + this.userId + '/playlists',
+            url: 'https://api.spotify.com/v1/users/' + userId + '/playlists',
             data: JSON.stringify(set),
             contentType: 'application/json',
             headers: {
