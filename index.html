@@ -325,11 +325,11 @@
         $('#artistStep').html(artistStep);
         $('#artistTotal').html(artistTotal);
         let progress = 0;
-        if (trackTotal > 0) {
-            progress = Math.floor(((trackStep / trackTotal) * 100));
-        }
         if (artistTotal > 0) {
-            progress = Math.floor((progress + Math.floor(((artistStep / artistTotal) * 100))) / 2);
+            progress = Math.floor(((artistStep / artistTotal) * 100));
+        }
+        if (trackTotal > 0) {
+            progress = Math.floor((progress * Math.floor(((trackStep / trackTotal) * 100))) / 100);
         }
         $('#progressBar').css('width', progress + '%');
         if (typeof collections !== 'undefined' && !makingChanges) {
