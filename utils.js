@@ -16,3 +16,11 @@ function isEmpty(obj) {
 
     return !obj || Object.keys(obj).length === 0;
 }
+
+function validateJSON(body) {
+    try {
+        return JSON.parse(body);
+    } catch (e) {
+        return null;
+    }
+}
