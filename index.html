@@ -752,6 +752,7 @@
                 console.log('Response from artists query -> ', data);
 
                 if ('items' in data) {
+                    console.log('Data contains items attribute');
                     $.each(data.items, function (index, value) {
                         if (value.id !== null && value.uri !== null) {
                             arr.push({id: value.id, uri: value.uri});
