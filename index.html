@@ -170,9 +170,9 @@
     <div id="pnlFileInfo" style="font-size: 16px; overflow: hidden; display: none;" class="heading">
         <div class="title-medium">File: <span id="fileName"></span></div>
         <br/>
+        <div id="fileArtists"></div>
         <div id="filePlaylists"></div>
         <div id="fileTracks"></div>
-        <div id="fileArtists"></div>
     </div>
     <div id="pnlUpload" style="font-size: 16px; overflow: hidden; display: none;" class="heading">
         <div class="title-medium">Importing new playlists and tracks</div>
@@ -322,8 +322,8 @@
         $('#playlistTotal').html(playlistTotal);
         $('#trackStep').html(trackStep);
         $('#trackTotal').html(trackTotal);
-        $('#artistStep').html(trackStep);
-        $('#artistTotal').html(trackTotal);
+        $('#artistStep').html(artistStep);
+        $('#artistTotal').html(artistTotal);
         let progress = 0;
         if (trackTotal > 0) {
             progress = Math.floor(((trackStep / trackTotal) * 100));
