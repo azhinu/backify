@@ -151,9 +151,9 @@
     <div id="pnlLoadingAccount" style="font-size: 16px; display: none;" class="heading">
         <div class="title-medium">Account: <span id="userName"></span></div>
         <br/>
+        <div id="loadingArtists"></div>
         <div id="loadingPlaylists"></div>
         <div id="loadingTracks"></div>
-        <div id="loadingArtists"></div>
         <br/>
         <div id="loadingTitle"></div>
     </div>
@@ -177,6 +177,7 @@
     <div id="pnlUpload" style="font-size: 16px; overflow: hidden; display: none;" class="heading">
         <div class="title-medium">Importing new playlists and tracks</div>
         <br/>
+        <div><span>Processed artists: </span><span id="artistStep"></span>/<span id="artistTotal"></span></div>
         <div><span>Processed playlists: </span><span id="playlistStep"></span>/<span id="playlistTotal"></span></div>
         <div><span>Processed tracks: </span><span id="trackStep"></span>/<span id="trackTotal"></span></div>
         <br/>
@@ -211,6 +212,8 @@
     let playlistTotal = 0;
     let trackStep = 0;
     let trackTotal = 0;
+    let artistStep = 0;
+    let artistTotal = 0;
 
     let playlistQueue = [];
     let savedQueue = [];
@@ -319,9 +322,14 @@
         $('#playlistTotal').html(playlistTotal);
         $('#trackStep').html(trackStep);
         $('#trackTotal').html(trackTotal);
+        $('#artistStep').html(trackStep);
+        $('#artistTotal').html(trackTotal);
         let progress = 0;
         if (trackTotal > 0) {
             progress = Math.floor(((trackStep / trackTotal) * 100));
+        }
+        if (artistTotal > 0) {
+            progress = Math.floor((progress + Math.floor(((artistStep / artistTotal) * 100))) / 2);
         }
         $('#progressBar').css('width', progress + '%');
         if (typeof collections !== 'undefined' && !makingChanges) {
@@ -337,7 +345,7 @@
             $('#fileArtists').html("" + set2.artistCount + " artists");
 
         }
-        setTimeout(refreshProgress, 1000);
+        setTimeout(refreshProgress, 500);
     }
 
     function login() {
@@ -464,11 +472,16 @@
 
             savedQueue = [];
             playlistQueue = [];
+            artistQueue = [];
 
             globalStep = "Uploading";
             if (typeof importColl !== 'undefined') {
 
                 playlistTotal = collPlaylistCount(importColl);
+
+                // compare artists
+                globalStep = "Comparing artists";
+                compareArtists(importColl.artists, collections.artists, addToFollowing);
 
                 // compare saved
                 globalStep = "Comparing saved tracks";
@@ -478,32 +491,45 @@
                 let playlistNames = _.keys(importColl.playlists);
                 globalStep = "Comparing playlists";
                 handlePlaylistCompare(playlistNames.reverse(), function () {
-                    handleTrackUpload();
+                    handleUpload();
                 });
             }
         }
     }
 
-    function handleTrackUpload() {
+    function handleUpload() {
 
+        // calculate track differences
         trackDiff = savedQueue.length + playlistQueue.length;
         trackTotal = Math.max(collTrackCount(importColl), trackDiff);
         trackStep = trackTotal - trackDiff;
+        // calculate artist differences
+        artistTotal = Math.max(collArtistCount(importColl), artistQueue.length);
+        artistStep = artistTotal - artistQueue.length;
 
-
-        if (trackTotal > 0) {
+        if (artistTotal > 0) {
+            $('#progressBar').show();
+            globalStep = "Following artists";
+            handleArtistRequests(artistQueue.reverse(), function () {
+                globalStep = "Finished following artists";
+                artistTotal = artistStep;
+            })
+        }
+        else if (trackTotal > 0) {
             $('#progressBar').show();
             globalStep = "Uploading tracks";
             handleSavedRequests(savedQueue.reverse(), function () {
                 handlePlaylistRequests(playlistQueue.reverse(), function () {
-                    globalStep = "Finished uploading";
+                    globalStep = "Finished everything";
                     trackTotal = trackStep;
-                    isImporting = false;
                 });
             });
         } else {
-            globalStep = "No new tracks found in import";
+            globalStep = "No new tracks or artists found in import";
         }
+
+        isImporting = false;
+
     }
 
     function handlePlaylistCompare(names, callback) {
@@ -555,6 +581,30 @@
                 callback(false);
             }
         });
+    }
+
+    function handleArtistRequests(arr, callback) {
+        let url = arr.pop();
+        if (url) {
+            trackStep += 1;
+            $.ajax({
+                method: "PUT",
+                url: url,
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                },
+                success: function () {
+                },
+                fail: function (jqXHR, textStatus, errorThrown) {
+                    console.log(errorThrown);
+                }
+            })
+                .always(function () {
+                    handleArtistRequests(arr, callback);
+                });
+        } else {
+            callback();
+        }
     }
 
     function handleSavedRequests(arr, callback) {
@@ -614,6 +664,10 @@
         savedQueue.push('https://api.spotify.com/v1/me/tracks?ids=' + id);
     }
 
+    function addToFollowing(id) {
+        artistQueue.push('https://api.spotify.com/v1/me/following?ids=' + id);
+    }
+
     function compareUriTracks(imported, stored, addCallback) {
         $.each(imported, function (index, value) {
             let found = false;
@@ -629,6 +683,20 @@
     }
 
     function compareIdTracks(imported, stored, addCallback) {
+        $.each(imported, function (index, value) {
+            let found = false;
+            $.each(stored, function (index2, value2) {
+                if (value.id === value2.id) {
+                    found = true;
+                }
+            });
+            if (!found) {
+                addCallback(value.id);
+            }
+        });
+    }
+
+    function compareArtists(imported, stored, addCallback) {
         $.each(imported, function (index, value) {
             let found = false;
             $.each(stored, function (index2, value2) {
