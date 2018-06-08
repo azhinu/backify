@@ -173,12 +173,12 @@
             isExporting = true;
             resetCounter();
             $('#pnlLoadingAccount').show();
-            $('#loadingTitle').html('Please wait. Loading your playlists ...');
-            refreshPlaylist(function () {
-                $('#loadingTitle').html('Please wait. Loading your tracks ...');
-                refreshMyMusicTracks(function () {
-                    $('#loadingTitle').html('Please wait. Loading your artists ...');
-                    refreshFollowedArtists(function () {
+            $('#loadingTitle').html('Please wait. Loading your followed artists ...');
+            refreshFollowedArtists(function () {
+                $('#loadingTitle').html('Please wait. Loading your playlists ...');
+                refreshPlaylist(function () {
+                    $('#loadingTitle').html('Please wait. Loading your tracks ...');
+                    refreshMyMusicTracks(function () {
                         $('#loadingTitle').html('Finished loading, you now might want to export or import.');
                         isExporting = false;
                         callback();
