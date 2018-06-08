@@ -4,7 +4,7 @@
     <meta http-equiv="content-type" content="text/html" charset="UTF-8">
     <title>Backify</title>
 
-    <script type="text/javascript" src="helper.js"></script>
+    <script type="text/javascript" src="utils.js"></script>
     <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
     <script type="text/javascript"
             src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.2/underscore-min.js"></script>
@@ -280,9 +280,9 @@
                 refreshTrackData(function () {
                     // Check for all the data read
                     // If user has no music/artists in account disable export button
-                    if (Object.keys(collections.playlists).length === 0 && collections.playlists.constructor === Object &&
-                        Object.keys(collections.saved).length === 0 && collections.saved.constructor === Object &&
-                        Object.keys(collections.artists).length === 0 && collections.artists.constructor === Object) {
+                    if (isEmpty(collections.playlists) &&
+                        isEmpty(collections.saved) &&
+                        isEmpty(collections.artists)) {
                         toggleExportButton();
                     }
                     $('#pnlAction').show();
@@ -366,6 +366,7 @@
     }
 
     function authCallback(event) {
+        console.log('Caught event -> ', event);
         if (event.origin !== spotifyConfig.uri) {
             return;
         }
