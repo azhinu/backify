@@ -507,9 +507,6 @@
         artistTotal = Math.max(collArtistCount(importColl), artistQueue.length);
         artistStep = artistTotal - artistQueue.length;
 
-        console.log('Artist total -> ', artistTotal);
-        console.log('Artist queue -> ', artistQueue);
-
         if (artistTotal > 0) {
             $('#progressBar').show();
             globalStep = "Following artists";
@@ -590,7 +587,6 @@
         let url = arr.pop();
         if (url) {
             artistStep += 1;
-            console.log('Artist step -> ', artistStep);
             $.ajax({
                 method: "PUT",
                 url: url,
