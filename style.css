@@ -114,7 +114,3 @@ body {
 .link:hover {
     color: #A2C852;
 }
-
-.gitlab-fork-ribbon.left-top:before {
-    background-color: #f80;
-}
