@@ -373,7 +373,9 @@
         if (authWindow) {
             authWindow.close();
         }
-        handleAuth(event.data);
+        if (event.data) {
+            handleAuth(event.data);
+        }
     }
 
     function urlEncodeSet(set) {
