@@ -651,6 +651,8 @@
                 'Authorization': 'Bearer ' + token
             },
             success: function (data) {
+                console.log('Response from tracks query -> ', data);
+
                 if (!data) return;
                 if ('items' in data) {
                     $.each(data.items, function (index, value) {
@@ -687,6 +689,7 @@
                 'Authorization': 'Bearer ' + token
             },
             success: function (data) {
+                console.log('Response from playlist chunk -> ', data);
                 if (!data) return;
                 if ('items' in data) {
                     $.each(data.items, function (index, value) {
@@ -748,11 +751,10 @@
                 'Authorization': 'Bearer ' + token
             },
             success: function (data) {
-                if (!data) return;
                 console.log('Response from artists query -> ', data);
 
+                if (!data) return;
                 if ('items' in data) {
-                    console.log('Data contains items attribute');
                     $.each(data.items, function (index, value) {
                         if (value.id !== null && value.uri !== null) {
                             arr.push({id: value.id, uri: value.uri});
