@@ -751,11 +751,11 @@
                 'Authorization': 'Bearer ' + token
             },
             success: function (data) {
-                console.log('Response from artists query -> ', data);
+                console.log('Response from artists query -> ', data.artists);
 
-                if (!data) return;
-                if ('items' in data) {
-                    $.each(data.items, function (index, value) {
+                if (!data.artists) return;
+                if ('items' in data.artists) {
+                    $.each(data.artists.items, function (index, value) {
                         if (value.id !== null && value.uri !== null) {
                             arr.push({id: value.id, uri: value.uri});
                         } else {
@@ -763,11 +763,11 @@
                         }
                     });
                 } else {
-                    arr.push({id: data.id, uri: data.uri});
+                    arr.push({id: data.artists.id, uri: data.artists.uri});
                 }
 
                 if (data.next) {
-                    loadArtistChunks(data.next, arr, callback);
+                    loadArtistChunks(data.artists.next, arr, callback);
                 } else {
                     callback();
                 }
