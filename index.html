@@ -238,6 +238,12 @@
         });
     }
 
+    function toggleExportButton() {
+        $('#btnExport').prop('disabled', function (i, v) {
+            return !v;
+        });
+    }
+
     function showImportScreen() {
         $('#pnlAction').hide();
         $('#pnlImport').show();
@@ -265,7 +271,6 @@
                 'Authorization': 'Bearer ' + accessToken
             },
             success: function (response) {
-                console.log('Logged in successfully -> ', response);
                 userId = response.id.toLowerCase();
                 email = response.email.toLowerCase();
 
@@ -273,6 +278,13 @@
                 $('#pnlLoggedOut').hide();
 
                 refreshTrackData(function () {
+                    // Check for all the data read
+                    // If user has no music/artists in account disable export button
+                    if (Object.keys(collections.playlists).length === 0 && collections.playlists.constructor === Object &&
+                        Object.keys(collections.saved).length === 0 && collections.saved.constructor === Object &&
+                        Object.keys(collections.artists).length === 0 && collections.artists.constructor === Object) {
+                        toggleExportButton();
+                    }
                     $('#pnlAction').show();
                 });
             }
@@ -374,8 +386,6 @@
     }
 
     function download() {
-        console.log('Email -> ', email);
-        console.log('User ID -> ', userId);
         let json = JSON.stringify(collections);
         let d = new Date();
         let time = '@' + d.getFullYear() + '_' + (d.getMonth() + 1) + '_' + d.getDate();
@@ -655,8 +665,6 @@
                 'Authorization': 'Bearer ' + token
             },
             success: function (data) {
-                console.log('Response from tracks query -> ', data);
-
                 if (!data) return;
                 if ('items' in data) {
                     $.each(data.items, function (index, value) {
@@ -693,7 +701,6 @@
                 'Authorization': 'Bearer ' + token
             },
             success: function (data) {
-                console.log('Response from playlist chunk -> ', data);
                 if (!data) return;
                 if ('items' in data) {
                     $.each(data.items, function (index, value) {
@@ -755,8 +762,6 @@
                 'Authorization': 'Bearer ' + token
             },
             success: function (data) {
-                console.log('Response from artists query -> ', data.artists);
-
                 if (!data.artists) return;
                 if ('items' in data.artists) {
                     $.each(data.artists.items, function (index, value) {
