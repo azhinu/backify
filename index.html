@@ -586,7 +586,7 @@
     function handleArtistRequests(arr, callback) {
         let url = arr.pop();
         if (url) {
-            trackStep += 1;
+            artistStep += 1;
             $.ajax({
                 method: "PUT",
                 url: url,
@@ -665,7 +665,7 @@
     }
 
     function addToFollowing(id) {
-        artistQueue.push('https://api.spotify.com/v1/me/following?ids=' + id);
+        artistQueue.push('https://api.spotify.com/v1/me/following?type=artist?ids=' + id);
     }
 
     function compareUriTracks(imported, stored, addCallback) {
