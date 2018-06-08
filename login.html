@@ -13,8 +13,11 @@
         loadConfig(function () {
             let target = window.self === window.top ? window.opener : window.parent;
             let hash = window.location.hash;
+            console.log('target -> ', target);
+            console.log('hash -> ', hash);
             if (hash) {
                 let token = window.location.hash.split('&')[0].split('=')[1];
+                console.log('token -> ', token);
                 target.postMessage(token, spotifyConfig.uri);
             }
         });
