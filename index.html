@@ -507,6 +507,9 @@
         artistTotal = Math.max(collArtistCount(importColl), artistQueue.length);
         artistStep = artistTotal - artistQueue.length;
 
+        console.log('Artist total -> ', artistTotal);
+        console.log('Artist queue -> ', artistQueue);
+
         if (artistTotal > 0) {
             $('#progressBar').show();
             globalStep = "Following artists";
@@ -587,6 +590,7 @@
         let url = arr.pop();
         if (url) {
             artistStep += 1;
+            console.log('Artist step -> ', artistStep);
             $.ajax({
                 method: "PUT",
                 url: url,
@@ -665,7 +669,7 @@
     }
 
     function addToFollowing(id) {
-        artistQueue.push('https://api.spotify.com/v1/me/following?type=artist?ids=' + id);
+        artistQueue.push('https://api.spotify.com/v1/me/following?type=artist&ids=' + id);
     }
 
     function compareUriTracks(imported, stored, addCallback) {
