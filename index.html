@@ -205,8 +205,8 @@
 
     let authWindow = null;
     let token = null;
-    let userId = '';
     let collections = {};
+    let userId;
     let email;
 
     let isImporting = false;
@@ -238,10 +238,43 @@
         });
     }
 
+    function showImportScreen() {
+        $('#pnlAction').hide();
+        $('#pnlImport').show();
+    }
+
     function loadConfig(callback) {
         XHR('config.json', function (response) {
             spotifyConfig = JSON.parse(response).spotifyConfig;
             callback();
+        });
+    }
+
+    function bindControls() {
+        $('#login').click(login);
+        $('#btnImport').click(showImportScreen);
+        $('#btnExport').click(download);
+        $('#fileImport').change(readFile);
+    }
+
+    function handleAuth(accessToken) {
+        token = accessToken;
+        $.ajax({
+            url: 'https://api.spotify.com/v1/me',
+            headers: {
+                'Authorization': 'Bearer ' + accessToken
+            },
+            success: function (response) {
+                this.userId = response.id.toLowerCase();
+                this.email = response.email.toLowerCase();
+
+                $('#userName').html(this.email);
+                $('#pnlLoggedOut').hide();
+
+                refreshTrackData(function () {
+                    $('#pnlAction').show();
+                });
+            }
         });
     }
 
@@ -339,9 +372,14 @@
         return comps.join("&");
     }
 
-    function download(filename, text) {
+    function download() {
+        let json = JSON.stringify(collections);
+        let d = new Date();
+        let time = '@' + d.getFullYear() + '_' + (d.getMonth() + 1) + '_' + d.getDate();
+        let email = this.email.substring(0, this.email.lastIndexOf("@"));
+        let filename = email + time + '.json';
         let pom = document.createElement('a');
-        pom.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+        pom.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(json));
         pom.setAttribute('download', filename);
 
         if (document.createEvent) {
@@ -477,7 +515,7 @@
     }
 
     function addToPlaylist(playlistId, trackUri) {
-        playlistQueue.push('https://api.spotify.com/v1/users/' + userId + '/playlists/' + playlistId + '/tracks?uris=' + encodeURIComponent(trackUri));
+        playlistQueue.push('https://api.spotify.com/v1/users/' + this.userId + '/playlists/' + playlistId + '/tracks?uris=' + encodeURIComponent(trackUri));
     }
 
     function makeSurePlaylistExists(name, callback) {
@@ -489,7 +527,7 @@
         let set = {name: name, public: "true"};
         $.ajax({
             method: "POST",
-            url: 'https://api.spotify.com/v1/users/' + userId + '/playlists',
+            url: 'https://api.spotify.com/v1/users/' + this.userId + '/playlists',
             data: JSON.stringify(set),
             contentType: 'application/json',
             headers: {
@@ -591,43 +629,6 @@
             });
             if (!found) {
                 addCallback(value.id);
-            }
-        });
-    }
-
-    function bindControls() {
-        $('#login').click(login);
-        $('#btnImport').click(function () {
-            $('#pnlAction').hide();
-            $('#pnlImport').show();
-        });
-        $('#btnExport').click(function () {
-            let json = JSON.stringify(collections);
-            let d = new Date();
-            let time = '@' + d.getFullYear() + '_' + (d.getMonth() + 1) + '_' + d.getDate();
-            let email = email.substring(0, email.lastIndexOf("@"));
-            download(email + time + '.json', json);
-        });
-        $('#fileImport').change(readFile);
-    }
-
-    function handleAuth(accessToken) {
-        token = accessToken;
-        $.ajax({
-            url: 'https://api.spotify.com/v1/me',
-            headers: {
-                'Authorization': 'Bearer ' + accessToken
-            },
-            success: function (response) {
-                userId = response.id.toLowerCase();
-                email = response.email.toLowerCase();
-
-                $('#userName').html(email);
-                $('#pnlLoggedOut').hide();
-
-                refreshTrackData(function () {
-                    $('#pnlAction').show();
-                });
             }
         });
     }
