@@ -163,21 +163,16 @@
             <button id="btnExport" class="button-main button-medium">Export</button>
         </div>
         <div style="width: 50%; float: left;">
+            <input style="display:none;" type="file" id="fileImport"/>
             <button id="btnImport" class="button-main button-medium">Import</button>
         </div>
     </div>
-    <div id="pnlImport" style="font-size: 16px; overflow: hidden; display: none;" class="heading">
-        <div id="pnlFile" style="">
-            <div style="float: left;">Select a previously exported file</div>
-            <input style="float: left; margin-left: 10px;" type="file" id="fileImport"/>
-        </div>
-        <div id="pnlFileInfo" style="display: none;">
-            <div class="title-medium">File: <span id="fileName"></span></div>
-            <br/>
-            <div id="filePlaylists"></div>
-            <div id="fileTracks"></div>
-            <div id="fileArtists"></div>
-        </div>
+    <div id="pnlFileInfo" style="font-size: 16px; overflow: hidden; display: none;" class="heading">
+        <div class="title-medium">File: <span id="fileName"></span></div>
+        <br/>
+        <div id="filePlaylists"></div>
+        <div id="fileTracks"></div>
+        <div id="fileArtists"></div>
     </div>
     <div id="pnlUpload" style="font-size: 16px; overflow: hidden; display: none;" class="heading">
         <div class="title-medium">Importing new playlists and tracks</div>
@@ -244,9 +239,8 @@
         });
     }
 
-    function showImportScreen() {
-        $('#pnlAction').hide();
-        $('#pnlImport').show();
+    function loadFile() {
+        $('#fileImport').trigger('click');
     }
 
     function loadConfig(callback) {
@@ -258,7 +252,7 @@
 
     function bindControls() {
         $('#login').click(login);
-        $('#btnImport').click(showImportScreen);
+        $('#btnImport').click(loadFile);
         $('#btnExport').click(download);
         $('#fileImport').change(readFile);
     }
@@ -366,7 +360,6 @@
     }
 
     function authCallback(event) {
-        console.log('Caught event -> ', event);
         if (event.origin !== spotifyConfig.uri) {
             return;
         }
@@ -421,7 +414,7 @@
 
                 importColl = JSON.parse(json);
 
-                $('#pnlFile').hide();
+                $('#pnlAction').hide();
                 $('#pnlFileInfo').show();
                 $('#pnlUpload').show();
 
