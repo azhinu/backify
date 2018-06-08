@@ -322,14 +322,19 @@
 
     function collectionProperties(coll) {
         return {
+            artistCount: collArtistCount(coll),
             playlistCount: collPlaylistCount(coll),
-            trackCount: collTrackCount(coll),
-            artistCount: collArtistCount(coll)
+            trackCount: collTrackCount(coll)
         };
     }
 
     function collTrackCount(coll) {
         let count = 0;
+
+        if (!coll) {
+            return count;
+        }
+
         let keys = _.keys(coll.playlists);
         $.each(keys, function (index, value) {
             count += coll.playlists[value].tracks.length;
@@ -341,11 +346,17 @@
     }
 
     function collPlaylistCount(coll) {
+        if (!coll) {
+            return 0;
+        }
         let keys = _.keys(coll.playlists);
         return keys.length;
     }
 
     function collArtistCount(coll) {
+        if (!coll) {
+            return 0;
+        }
         let keys = _.keys(coll.artists);
         return keys.length;
     }
@@ -419,6 +430,11 @@
     }
 
     function handlePlaylistCompare(names, callback) {
+
+        if (!names) {
+            callback();
+        }
+
         let name = names.pop();
         if (!name) {
             callback();
@@ -569,6 +585,11 @@
     }
 
     function compareIdTracks(imported, stored, addCallback) {
+
+        if (!imported) {
+            return;
+        }
+
         $.each(imported, function (index, value) {
             let found = false;
             $.each(stored, function (index2, value2) {
@@ -583,6 +604,11 @@
     }
 
     function compareArtists(imported, stored, addCallback) {
+
+        if (!imported) {
+            return;
+        }
+
         $.each(imported, function (index, value) {
             let found = false;
             $.each(stored, function (index2, value2) {
