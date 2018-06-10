@@ -3,33 +3,9 @@
 <head>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8">
     <title>Login Window</title>
-    <script type="text/javascript" src="utils.js"></script>
+    <script type="text/javascript" src="scripts/login.js"></script>
+    <script type="text/javascript" src="scripts/utils.js"></script>
 
-    <script type='text/javascript'>//<![CDATA[
-
-    let spotifyConfig;
-
-    window.onload = function () {
-        loadConfig(function () {
-            let target = window.self === window.top ? window.opener : window.parent;
-            let hash = window.location.hash;
-            let token;
-
-            if (hash) {
-                token = hash.split('&')[0].split('=')[1];
-            }
-
-            target.postMessage(token, spotifyConfig.uri);
-        });
-    };
-
-    function loadConfig(callback) {
-        XHR('config.json', function (response) {
-            spotifyConfig = JSON.parse(response).spotifyConfig;
-            callback();
-        });
-    }
-    </script>
 </head>
 <body>
 
