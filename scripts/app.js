@@ -227,8 +227,6 @@ function readFile(evt) {
                 return;
             }
 
-            console.log('Read file, import coll -> ', importColl);
-
             $('#fileName').html(f.name);
             $('#pnlAction').hide();
             $('#pnlFileInfo').show();
