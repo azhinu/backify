@@ -24,6 +24,14 @@ let btnExportSelector;
 let btnResetSelector;
 let btnEraseSelector;
 let fileImportSelector;
+let usernameSelector;
+let loggedOutSelector;
+let actionSelector;
+let loadingAccountSelector;
+let loadingTitleSelector;
+let fileInfoSelector;
+let uploadSelector;
+let fileNameSelector;
 
 let playlistQueue = [];
 let savedQueue = [];
@@ -45,19 +53,19 @@ function init() {
 }
 
 function toggleLoginButton() {
-    $('#login').prop('disabled', function (i, v) {
+    loginSelector.prop('disabled', function (i, v) {
         return !v;
     });
 }
 
 function toggleExportButton() {
-    $('#btnExport').prop('disabled', function (i, v) {
+    btnExportSelector.prop('disabled', function (i, v) {
         return !v;
     });
 }
 
 function loadFile() {
-    $('#fileImport').trigger('click');
+    fileImportSelector.trigger('click');
 }
 
 function loadConfig(callback) {
@@ -74,6 +82,14 @@ function initializeSelectorVariables() {
     btnResetSelector = $('#btnReset');
     btnEraseSelector = $('#btnErase');
     fileImportSelector = $('#fileImport');
+    usernameSelector = $('#userName');
+    loggedOutSelector = $('#pnlLoggedOut');
+    actionSelector = $('#pnlAction');
+    loadingAccountSelector = $('#pnlLoadingAccount');
+    loadingTitleSelector = $('#loadingTitle');
+    fileInfoSelector = $('#pnlFileInfo');
+    uploadSelector = $('#pnlUpload');
+    fileNameSelector = $('#fileName');
 }
 
 function bindControls() {
@@ -96,8 +112,8 @@ function handleAuth(accessToken) {
             userId = response.id.toLowerCase();
             email = response.email.toLowerCase();
 
-            $('#userName').html(email);
-            $('#pnlLoggedOut').hide();
+            usernameSelector.html(email);
+            loggedOutSelector.hide();
 
             refreshTrackData(function () {
                 // Check for all the data read
@@ -107,7 +123,7 @@ function handleAuth(accessToken) {
                     isEmpty(collections.artists)) {
                     toggleExportButton();
                 }
-                $('#pnlAction').show();
+                actionSelector.show();
             });
         }
     });
@@ -117,14 +133,14 @@ function refreshTrackData(callback) {
     if (!isExporting && !isImporting) {
         isExporting = true;
         resetCounter();
-        $('#pnlLoadingAccount').show();
-        $('#loadingTitle').html('Please wait. Loading your followed artists ...');
+        loadingAccountSelector.show();
+        loadingTitleSelector.html('Please wait. Loading your followed artists ...');
         refreshFollowedArtists(function () {
-            $('#loadingTitle').html('Please wait. Loading your playlists ...');
+            loadingTitleSelector.html('Please wait. Loading your playlists ...');
             refreshPlaylist(function () {
-                $('#loadingTitle').html('Please wait. Loading your tracks ...');
+                loadingTitleSelector.html('Please wait. Loading your tracks ...');
                 refreshMyMusicTracks(function () {
-                    $('#loadingTitle').html('Finished loading, you now might want to export or import.');
+                    loadingTitleSelector.html('Finished loading, you now might want to export or import.');
                     isExporting = false;
                     callback();
                 });
@@ -167,11 +183,11 @@ function resetVariables() {
 }
 
 function resetUI() {
-    $('#pnlLoadingAccount').hide();
-    $('#pnlAction').hide();
-    $('#pnlFileInfo').hide();
-    $('#pnlUpload').hide();
-    $('#pnlLoggedOut').show();
+    loadingAccountSelector.hide();
+    actionSelector.hide();
+    fileInfoSelector.hide();
+    uploadSelector.hide();
+    loggedOutSelector.show();
 }
 
 function refreshProgress() {
@@ -283,10 +299,10 @@ function readFile(evt) {
                 return;
             }
 
-            $('#fileName').html(f.name);
-            $('#pnlAction').hide();
-            $('#pnlFileInfo').show();
-            $('#pnlUpload').show();
+            fileNameSelector.html(f.name);
+            actionSelector.hide();
+            fileInfoSelector.show();
+            uploadSelector.show();
 
             compareEverything();
         };
@@ -760,7 +776,7 @@ function loadArtistChunks(url, arr, callback) {
 window.onload = function () {
     if (navigator.userAgent.indexOf('MSIE') !== -1 || navigator.appVersion.indexOf('Trident/') > 0) {
         // MSIE
-        $('#pnlLoggedOut').html('Please use Firefox or Chrome, due to a bug in Internet Explorer');
+        loggedOutSelector.html('Please use Firefox or Chrome, due to a bug in Internet Explorer');
     } else {
         init();
     }
