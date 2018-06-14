@@ -23,7 +23,10 @@ let savedQueue = [];
 let makingChanges = false;
 
 function init() {
+    // Disables login button to wait for config to load
     toggleLoginButton();
+    // Loads config.json file using XHR
+    // This file contains configuration values specific for Spotify API such as client_id or redirect_uri
     loadConfig(function () {
         window.addEventListener("message", authCallback, false);
         bindControls();
@@ -59,6 +62,7 @@ function bindControls() {
     $('#login').click(login);
     $('#btnImport').click(loadFile);
     $('#btnExport').click(download);
+    $('#btnReset').click(resetApp);
     $('#fileImport').change(readFile);
 }
 
@@ -110,12 +114,42 @@ function refreshTrackData(callback) {
     }
 }
 
+function resetApp() {
+    resetCounter();
+    resetVariables();
+    resetUI();
+}
+
 function resetCounter() {
     globalStep = '';
     playlistStep = 0;
     playlistTotal = 0;
     trackStep = 0;
     trackTotal = 0;
+    artistStep = 0;
+    artistTotal = 0;
+}
+
+function resetVariables() {
+    isImporting = false;
+    isExporting = false;
+    makingChanges = false;
+    playlistQueue = [];
+    savedQueue = [];
+    collections = {};
+    importColl = {};
+    authWindow = null;
+    token = null;
+    userId = null;
+    email = null;
+}
+
+function resetUI() {
+    $('#pnlLoadingAccount').hide();
+    $('#pnlAction').hide();
+    $('#pnlFileInfo').hide();
+    $('#pnlUpload').hide();
+    $('#pnlLoggedOut').show();
 }
 
 function refreshProgress() {

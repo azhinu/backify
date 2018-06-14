@@ -64,6 +64,13 @@ body {
     margin-left: 80px;
 }
 
+.button-reset {
+    font-size: 10px;
+    padding: 8px 10px 8px;
+    background-color: #858585;
+    margin-left: 300px;
+}
+
 .title-bold {
     font-weight: bold;
     font-size: 44px;
