@@ -17,6 +17,14 @@ let trackTotal = 0;
 let artistStep = 0;
 let artistTotal = 0;
 
+/* jQuery selectors */
+let loginSelector = $('#login');
+let btnImportSelector = $('#btnImport');
+let btnExportSelector = $('#btnExport');
+let btnResetSelector = $('#btnReset');
+let btnEraseSelector = $('#btnErase');
+let fileImportSelector = $('#fileImport');
+
 let playlistQueue = [];
 let savedQueue = [];
 
@@ -59,12 +67,12 @@ function loadConfig(callback) {
 }
 
 function bindControls() {
-    $('#login').click(login);
-    $('#btnImport').click(loadFile);
-    $('#btnExport').click(download);
-    $('#btnReset').click(resetApp);
-    $('#btnErase').click(wipeAccount);
-    $('#fileImport').change(readFile);
+    loginSelector.click(login);
+    btnImportSelector.click(loadFile);
+    btnExportSelector.click(download);
+    btnResetSelector.click(resetApp);
+    btnEraseSelector.click(wipeAccount);
+    fileImportSelector.change(readFile);
 }
 
 function handleAuth(accessToken) {
@@ -119,7 +127,9 @@ function resetApp() {
     resetCounter();
     resetVariables();
     resetUI();
-    bindControls();
+
+    fileImportSelector.replaceWith(fileImportSelector.clone());
+    fileImportSelector.change(readFile);
 }
 
 function resetCounter() {
