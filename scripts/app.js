@@ -324,25 +324,28 @@ function handleUpload() {
     artistTotal = Math.max(collArtistCount(importColl), artistQueue.length);
     artistStep = artistTotal - artistQueue.length;
 
-    if (artistTotal > 0) {
-        $('#progressBar').show();
-        globalStep = "Following artists";
-        handleArtistRequests(artistQueue.reverse(), function () {
-            globalStep = "Finished following artists";
-            artistTotal = artistStep;
-        })
-    }
-    else if (trackTotal > 0) {
-        $('#progressBar').show();
-        globalStep = "Uploading tracks";
-        handleSavedRequests(savedQueue.reverse(), function () {
-            handlePlaylistRequests(playlistQueue.reverse(), function () {
-                globalStep = "Finished everything";
-                trackTotal = trackStep;
-            });
-        });
-    } else {
+    if (artistTotal === 0 || trackTotal === 0) {
         globalStep = "No new tracks or artists found in import";
+    } else {
+        if (artistTotal > 0) {
+            $('#progressBar').show();
+            globalStep = "Following artists";
+            handleArtistRequests(artistQueue.reverse(), function () {
+                globalStep = "Finished following artists";
+                artistTotal = artistStep;
+            })
+        }
+
+        if (trackTotal > 0) {
+            $('#progressBar').show();
+            globalStep = "Uploading tracks";
+            handleSavedRequests(savedQueue.reverse(), function () {
+                handlePlaylistRequests(playlistQueue.reverse(), function () {
+                    globalStep = "Finished everything";
+                    trackTotal = trackStep;
+                });
+            });
+        }
     }
 
     isImporting = false;
