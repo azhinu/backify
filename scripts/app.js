@@ -18,12 +18,12 @@ let artistStep = 0;
 let artistTotal = 0;
 
 /* jQuery selectors */
-let loginSelector = $('#login');
-let btnImportSelector = $('#btnImport');
-let btnExportSelector = $('#btnExport');
-let btnResetSelector = $('#btnReset');
-let btnEraseSelector = $('#btnErase');
-let fileImportSelector = $('#fileImport');
+let loginSelector;
+let btnImportSelector;
+let btnExportSelector;
+let btnResetSelector;
+let btnEraseSelector;
+let fileImportSelector;
 
 let playlistQueue = [];
 let savedQueue = [];
@@ -37,6 +37,7 @@ function init() {
     // This file contains configuration values specific for Spotify API such as client_id or redirect_uri
     loadConfig(function () {
         window.addEventListener("message", authCallback, false);
+        initializeSelectorVariables();
         bindControls();
         refreshProgress();
         toggleLoginButton();
@@ -64,6 +65,15 @@ function loadConfig(callback) {
         spotifyConfig = JSON.parse(response).spotifyConfig;
         callback();
     });
+}
+
+function initializeSelectorVariables() {
+    loginSelector = $('#login');
+    btnImportSelector = $('#btnImport');
+    btnExportSelector = $('#btnExport');
+    btnResetSelector = $('#btnReset');
+    btnEraseSelector = $('#btnErase');
+    fileImportSelector = $('#fileImport');
 }
 
 function bindControls() {
