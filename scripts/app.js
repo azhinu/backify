@@ -118,6 +118,7 @@ function resetApp() {
     resetCounter();
     resetVariables();
     resetUI();
+    bindControls();
 }
 
 function resetCounter() {
