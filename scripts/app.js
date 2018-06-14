@@ -402,7 +402,7 @@ function handleUpload() {
     artistTotal = Math.max(collArtistCount(importColl), artistQueue.length);
     artistStep = artistTotal - artistQueue.length;
 
-    if (artistTotal === 0 || trackTotal === 0) {
+    if (artistTotal === 0 && trackTotal === 0) {
         globalStep = "No new tracks or artists found in import";
     } else {
         if (artistTotal > 0) {
