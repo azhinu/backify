@@ -39,13 +39,14 @@ let savedQueue = [];
 let makingChanges = false;
 
 function init() {
+    // Initializing global selector variables
+    initializeSelectorVariables();
     // Disables login button to wait for config to load
     toggleLoginButton();
     // Loads config.json file using XHR
     // This file contains configuration values specific for Spotify API such as client_id or redirect_uri
     loadConfig(function () {
         window.addEventListener("message", authCallback, false);
-        initializeSelectorVariables();
         bindControls();
         refreshProgress();
         toggleLoginButton();
