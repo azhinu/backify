@@ -71,6 +71,10 @@ body {
     margin-left: 300px;
 }
 
+.button-erase {
+    background-color: #bd4010;
+}
+
 .title-bold {
     font-weight: bold;
     font-size: 44px;

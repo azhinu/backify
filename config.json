@@ -6,7 +6,7 @@
     "scope": "playlist-read-private playlist-modify-public playlist-modify-private user-library-read user-library-modify user-read-email user-follow-read user-follow-modify",
     "response_type": "token",
     "show_dialog": "true",
-    "slowdown_import": 100,
-    "slowdown_export": 100
+    "slowdown_import": 200,
+    "slowdown_export": 200
   }
 }

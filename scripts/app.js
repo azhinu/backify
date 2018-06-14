@@ -63,6 +63,7 @@ function bindControls() {
     $('#btnImport').click(loadFile);
     $('#btnExport').click(download);
     $('#btnReset').click(resetApp);
+    $('#btnErase').click(wipeAccount);
     $('#fileImport').change(readFile);
 }
 
@@ -273,6 +274,11 @@ function readFile(evt) {
     } else {
         alert("Failed to load file");
     }
+}
+
+function wipeAccount() {
+    // let response = confirm("This will remove ALL artists/songs/playlists from your account. ARE YOU ABSOLUTELY SURE. THIS CANNOT BE UNDONE!");
+    console.log("This is not yet implemented!");
 }
 
 function collectionProperties(coll) {
@@ -510,6 +516,7 @@ function handlePlaylistRequests(arr, callback) {
             },
             fail: function (jqXHR, textStatus, errorThrown) {
                 console.log('Track URI not found. Probably local file...');
+                console.log(JSON.parse(jqXHR.responseText));
             }
         })
             .always(function () {
@@ -616,6 +623,12 @@ function loadTrackChunks(url, arr, callback) {
             } else {
                 callback();
             }
+        },
+        fail: function (xhr, status, error) {
+            let err = JSON.parse(xhr.responseText);
+            console.log(status);
+            console.log(err);
+            loadTrackChunksWithTimeout(url, arr, callback, spotifyConfig.slowdown_export);
         }
     });
 }
@@ -662,6 +675,12 @@ function loadPlaylistChunks(url, arr, callback) {
             } else {
                 callback();
             }
+        },
+        fail: function (xhr, status, error) {
+            let err = JSON.parse(xhr.responseText);
+            console.log(status);
+            console.log(err);
+            loadPlaylistChunks(url, arr, callback);
         }
     });
 }
