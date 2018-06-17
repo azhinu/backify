@@ -199,7 +199,12 @@ function refreshProgress() {
     $('#trackTotal').html(trackTotal);
     $('#artistStep').html(artistStep);
     $('#artistTotal').html(artistTotal);
-    let progress = 1;
+    let progress = 0;
+
+    if (artistTotal > 0 || trackTotal > 0) {
+
+    }
+
     if (artistTotal > 0) {
         progress = Math.floor(((artistStep / artistTotal) * 100));
     }
@@ -273,14 +278,6 @@ function download() {
     let pom = document.createElement('a');
     pom.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(json));
     pom.setAttribute('download', filename);
-
-    const replacer = (key, value) => value === null ? '' : value // specify how you want to handle null values here
-    const header = Object.keys(items[0])
-    let csv = items.map(row => header.map(fieldName => JSON.stringify(row[fieldName], replacer)).join(','))
-    csv.unshift(header.join(','))
-    csv = csv.join('\r\n')
-
-    console.log(csv)
 
     if (document.createEvent) {
         let event = document.createEvent('MouseEvents');
@@ -409,8 +406,6 @@ function handleUpload() {
     // calculate artist differences
     artistTotal = Math.max(collArtistCount(importColl), artistQueue.length);
     artistStep = artistTotal - artistQueue.length;
-
-    console.log('Artist difference -> ', artistStep);
 
     if (artistTotal === 0 && trackTotal === 0) {
         globalStep = "No new tracks or artists found in import";
