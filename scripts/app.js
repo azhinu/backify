@@ -202,15 +202,16 @@ function refreshProgress() {
     let progress = 0;
 
     if (artistTotal > 0 || trackTotal > 0) {
-
+        if (artistTotal > 0) {
+            progress = Math.floor(((artistStep / artistTotal) * 100));
+        }
+        if (trackTotal > 0) {
+            progress = progress > 0 ?
+                Math.floor((progress * Math.floor(((trackStep / trackTotal) * 100))) / 100) :
+                Math.floor(((trackStep / trackTotal) * 100));
+        }
     }
 
-    if (artistTotal > 0) {
-        progress = Math.floor(((artistStep / artistTotal) * 100));
-    }
-    if (trackTotal > 0) {
-        progress = Math.floor((progress * Math.floor(((trackStep / trackTotal) * 100))) / 100);
-    }
     $('#progressBar').css('width', progress + '%');
     if (typeof collections !== 'undefined' && !makingChanges) {
         let set = collectionProperties(collections);
