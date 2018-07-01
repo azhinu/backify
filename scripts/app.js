@@ -771,7 +771,10 @@ function loadArtistChunks(url, arr, callback) {
                 arr.push({id: data.artists.id, uri: data.artists.uri});
             }
 
+            console.log('Artist next -> ', data.next);
+
             if (data.next) {
+                console.log('Found more artists, scrolling...');
                 loadArtistChunks(data.artists.next, arr, callback);
             } else {
                 callback();
