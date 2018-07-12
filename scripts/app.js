@@ -110,6 +110,7 @@ function handleAuth(accessToken) {
             'Authorization': 'Bearer ' + accessToken
         },
         success: function (response) {
+            console.log(response);
             userId = response.id.toLowerCase();
             email = response.email.toLowerCase();
 
