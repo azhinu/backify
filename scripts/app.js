@@ -471,7 +471,7 @@ function handlePlaylistCompare(names, callback) {
 
 function addToPlaylist(playlistId, trackUris) {
     // We group track URIs in chunks of 50 as it's the limit per request
-    let groupedArray = createGroupedArray(trackUris.reverse(), 50);
+    let groupedArray = createGroupedArray(trackUris, 50);
     $.each(groupedArray, function (index, value) {
         playlistQueue.push('https://api.spotify.com/v1/users/' + userId + '/playlists/' + playlistId + '/tracks?uris=' + encodeURIComponent(value.toString()));
         playlistQueueSize += value.length;
