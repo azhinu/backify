@@ -730,6 +730,8 @@ function loadPlaylistChunks(url, arr, callback) {
 }
 
 function handlePlaylistTracks(arr, result, callback) {
+    console.log("Handling playlists tracks for user -> ", userId);
+    console.log("Current playlist array -> ", arr);
     let item = arr.pop();
     if (!item) {
         return callback();
