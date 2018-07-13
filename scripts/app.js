@@ -17,6 +17,9 @@ let trackTotal = 0;
 let artistStep = 0;
 let artistTotal = 0;
 
+/* API calls counter */
+let tries = 0;
+
 /* jQuery selectors */
 let loginSelector;
 let btnImportSelector;
@@ -168,6 +171,7 @@ function resetCounter() {
     trackTotal = 0;
     artistStep = 0;
     artistTotal = 0;
+    tries = 0;
 }
 
 function resetVariables() {
@@ -487,7 +491,9 @@ function makeSurePlaylistExists(name, callback) {
             };
             callback(true);
         },
-        fail: function () {
+        error: function (xhr) {
+            let response = xhr.responseJSON;
+            console.log('Error status [%s] with message [%s]', response.error.status, response.error.message);
             callback(false);
         }
     });
@@ -505,8 +511,9 @@ function handleArtistRequests(arr, callback) {
             },
             success: function () {
             },
-            fail: function (jqXHR, textStatus, errorThrown) {
-                console.log(errorThrown);
+            error: function (xhr) {
+                let response = xhr.responseJSON;
+                console.log('Error status [%s] with message [%s]', response.error.status, response.error.message);
             }
         })
             .always(function () {
@@ -529,8 +536,9 @@ function handleSavedRequests(arr, callback) {
             },
             success: function () {
             },
-            fail: function (jqXHR, textStatus, errorThrown) {
-                console.log(errorThrown);
+            error: function (xhr) {
+                let response = xhr.responseJSON;
+                console.log('Error status [%s] with message [%s]', response.error.status, response.error.message);
             }
         })
             .always(function () {
@@ -558,9 +566,12 @@ function handlePlaylistRequests(arr, callback) {
             headers: {
                 'Authorization': 'Bearer ' + token
             },
-            fail: function (jqXHR, textStatus, errorThrown) {
+            success: function () {
+            },
+            error: function (xhr) {
+                let response = xhr.responseJSON;
+                console.log('Error status [%s] with message [%s]', response.error.status, response.error.message);
                 console.log('Track URI not found. Probably local file...');
-                console.log(JSON.parse(jqXHR.responseText));
             }
         })
             .always(function () {
@@ -571,12 +582,20 @@ function handlePlaylistRequests(arr, callback) {
     }
 }
 
-function addToSaved(id) {
-    savedQueue.push('https://api.spotify.com/v1/me/tracks?ids=' + id);
+function addToSaved(trackIds) {
+    // We group track IDs in chunks of 50 as it's the limit per request
+    let groupedArray = createGroupedArray(trackIds, 50);
+    $.each(groupedArray, function (index, value) {
+        savedQueue.push('https://api.spotify.com/v1/me/tracks?ids=' + value.toString());
+    });
 }
 
-function addToFollowing(id) {
-    artistQueue.push('https://api.spotify.com/v1/me/following?type=artist&ids=' + id);
+function addToFollowing(artistIds) {
+    // We group artist IDs in chunks of 50 as it's the limit per request
+    let groupedArray = createGroupedArray(artistIds, 50);
+    $.each(groupedArray, function (index, value) {
+        artistQueue.push('https://api.spotify.com/v1/me/following?type=artist&ids=' + value.toString());
+    });
 }
 
 function compareUriTracks(imported, stored, addCallback) {
@@ -593,7 +612,9 @@ function compareUriTracks(imported, stored, addCallback) {
     });
 }
 
-function compareIdTracks(imported, stored, addCallback) {
+function compareIdTracks(imported, stored, callback) {
+
+    let tracksToAdd = [];
 
     if (!imported) {
         return;
@@ -607,12 +628,17 @@ function compareIdTracks(imported, stored, addCallback) {
             }
         });
         if (!found) {
-            addCallback(value.id);
+            // addCallback(value.id);
+            tracksToAdd.push(value.id);
         }
     });
+
+    callback(tracksToAdd);
 }
 
-function compareArtists(imported, stored, addCallback) {
+function compareArtists(imported, stored, callback) {
+
+    let artistToAdd = [];
 
     if (!imported) {
         return;
@@ -626,15 +652,18 @@ function compareArtists(imported, stored, addCallback) {
             }
         });
         if (!found) {
-            addCallback(value.id);
+            // addCallback(value.id);
+            artistToAdd.push(value.id);
         }
     });
+
+    callback(artistToAdd);
 }
 
 function refreshMyMusicTracks(callback) {
     collections.saved = [];
     playlistStep += 1;
-    loadTrackChunks('https://api.spotify.com/v1/me/tracks', collections.saved, callback);
+    loadTrackChunks('https://api.spotify.com/v1/me/tracks?limit=50', collections.saved, callback);
 }
 
 function loadTrackChunksWithTimeout(url, arr, callback, timeout) {
@@ -668,11 +697,16 @@ function loadTrackChunks(url, arr, callback) {
                 callback();
             }
         },
-        fail: function (xhr, status, error) {
-            let err = JSON.parse(xhr.responseText);
-            console.log(status);
-            console.log(err);
-            loadTrackChunksWithTimeout(url, arr, callback, spotifyConfig.slowdown_export);
+        error: function (xhr) {
+            let response = xhr.responseJSON;
+            console.log('Error status [%s] with message [%s]', response.error.status, response.error.message);
+            if (tries++ < 3) {
+                console.log('Retrying [%s] with [%s] ms delay. Retry %s of 3...', url, spotifyConfig.slowdown_export, tries);
+                loadTrackChunksWithTimeout(url, arr, callback, spotifyConfig.slowdown_export);
+            } else {
+                tries = 0;
+                callback();
+            }
         }
     });
 }
@@ -680,7 +714,7 @@ function loadTrackChunks(url, arr, callback) {
 function refreshPlaylist(callback) {
     collections.playlists = {};
     let playlists = [];
-    loadPlaylistChunks('https://api.spotify.com/v1/me/playlists', playlists, function () {
+    loadPlaylistChunks('https://api.spotify.com/v1/me/playlists?limit=50', playlists, function () {
         handlePlaylistTracks(playlists, collections.playlists, callback);
     });
 }
@@ -720,18 +754,21 @@ function loadPlaylistChunks(url, arr, callback) {
                 callback();
             }
         },
-        fail: function (xhr, status, error) {
-            let err = JSON.parse(xhr.responseText);
-            console.log(status);
-            console.log(err);
-            loadPlaylistChunks(url, arr, callback);
+        error: function (xhr) {
+            let response = xhr.responseJSON;
+            console.log('Error status [%s] with message [%s]', response.error.status, response.error.message);
+            if (tries++ < 3) {
+                console.log('Retrying [%s]. Retry %s of 3...', url, tries);
+                loadPlaylistChunks(url, arr, callback);
+            } else {
+                tries = 0;
+                callback();
+            }
         }
     });
 }
 
 function handlePlaylistTracks(arr, result, callback) {
-    console.log("Handling playlists tracks for user -> ", userId);
-    console.log("Current playlist array -> ", arr);
     let item = arr.pop();
     if (!item) {
         return callback();
@@ -751,7 +788,7 @@ function handlePlaylistTracks(arr, result, callback) {
 
 function refreshFollowedArtists(callback) {
     collections.artists = [];
-    loadArtistChunks('https://api.spotify.com/v1/me/following?type=artist', collections.artists, callback);
+    loadArtistChunks('https://api.spotify.com/v1/me/following?type=artist&limit=50', collections.artists, callback);
 }
 
 function loadArtistChunks(url, arr, callback) {
@@ -777,6 +814,17 @@ function loadArtistChunks(url, arr, callback) {
             if (data.artists.next) {
                 loadArtistChunks(data.artists.next, arr, callback);
             } else {
+                callback();
+            }
+        },
+        error: function (xhr) {
+            let response = xhr.responseJSON;
+            console.log('Error status [%s] with message [%s]', response.error.status, response.error.message);
+            if (tries++ < 3) {
+                console.log('Retrying [%s]. Retry %s of 3...', url, tries);
+                loadArtistChunks(url, arr, callback);
+            } else {
+                tries = 0;
                 callback();
             }
         }
