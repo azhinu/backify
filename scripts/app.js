@@ -9,6 +9,7 @@ let email;
 
 let isImporting = false;
 let isExporting = false;
+let makingChanges = false;
 let globalStep = "";
 let playlistStep = 0;
 let playlistTotal = 0;
@@ -38,8 +39,10 @@ let fileNameSelector;
 
 let playlistQueue = [];
 let savedQueue = [];
-
-let makingChanges = false;
+let artistQueue = [];
+let playlistQueueSize = 0;
+let savedQueueSize = 0;
+let artistQueueSize = 0;
 
 function init() {
     // Initializing global selector variables
@@ -113,7 +116,6 @@ function handleAuth(accessToken) {
             'Authorization': 'Bearer ' + accessToken
         },
         success: function (response) {
-            console.log(response);
             userId = response.id.toLowerCase();
             email = response.email.toLowerCase();
 
@@ -172,6 +174,9 @@ function resetCounter() {
     artistStep = 0;
     artistTotal = 0;
     tries = 0;
+    playlistQueueSize = 0;
+    savedQueueSize = 0;
+    artistQueueSize = 0;
 }
 
 function resetVariables() {
@@ -180,6 +185,7 @@ function resetVariables() {
     makingChanges = false;
     playlistQueue = [];
     savedQueue = [];
+    artistQueue = [];
     collections = {};
     importColl = {};
     authWindow = null;
@@ -406,12 +412,12 @@ function compareEverything() {
 function handleUpload() {
 
     // calculate track differences
-    trackDiff = savedQueue.length + playlistQueue.length;
+    trackDiff = savedQueueSize + playlistQueueSize;
     trackTotal = Math.max(collTrackCount(importColl), trackDiff);
     trackStep = trackTotal - trackDiff;
     // calculate artist differences
-    artistTotal = Math.max(collArtistCount(importColl), artistQueue.length);
-    artistStep = artistTotal - artistQueue.length;
+    artistTotal = Math.max(collArtistCount(importColl), artistQueueSize);
+    artistStep = artistTotal - artistQueueSize;
 
     if (artistTotal === 0 && trackTotal === 0) {
         globalStep = "No new tracks or artists found in import";
@@ -419,7 +425,7 @@ function handleUpload() {
         if (artistTotal > 0) {
             $('#progressBar').show();
             globalStep = "Following artists";
-            handleArtistRequests(artistQueue.reverse(), function () {
+            handleArtistRequests(artistQueue, function () {
                 globalStep = "Finished following artists";
                 artistTotal = artistStep;
             })
@@ -428,8 +434,8 @@ function handleUpload() {
         if (trackTotal > 0) {
             $('#progressBar').show();
             globalStep = "Uploading tracks";
-            handleSavedRequests(savedQueue.reverse(), function () {
-                handlePlaylistRequests(playlistQueue.reverse(), function () {
+            handleSavedRequests(savedQueue, function () {
+                handlePlaylistRequests(playlistQueue, function () {
                     globalStep = "Finished everything";
                     trackTotal = trackStep;
                 });
@@ -455,16 +461,21 @@ function handlePlaylistCompare(names, callback) {
     makeSurePlaylistExists(name, function (proceed) {
         if (proceed) {
             let playlistId = collections.playlists[name].id;
-            compareUriTracks(importColl.playlists[name].tracks, collections.playlists[name].tracks, function (uri) {
-                addToPlaylist(playlistId, uri);
+            compareUriTracks(importColl.playlists[name].tracks, collections.playlists[name].tracks, function (trackUris) {
+                addToPlaylist(playlistId, trackUris);
             });
         }
         handlePlaylistCompare(names, callback);
     });
 }
 
-function addToPlaylist(playlistId, trackUri) {
-    playlistQueue.push('https://api.spotify.com/v1/users/' + userId + '/playlists/' + playlistId + '/tracks?uris=' + encodeURIComponent(trackUri));
+function addToPlaylist(playlistId, trackUris) {
+    // We group track URIs in chunks of 50 as it's the limit per request
+    let groupedArray = createGroupedArray(trackUris.reverse(), 50);
+    $.each(groupedArray, function (index, value) {
+        playlistQueue.push('https://api.spotify.com/v1/users/' + userId + '/playlists/' + playlistId + '/tracks?uris=' + encodeURIComponent(value.toString()));
+        playlistQueueSize += value.length;
+    });
 }
 
 function makeSurePlaylistExists(name, callback) {
@@ -493,7 +504,7 @@ function makeSurePlaylistExists(name, callback) {
         },
         error: function (xhr) {
             let response = xhr.responseJSON;
-            console.log('Error status [%s] with message [%s]', response.error.status, response.error.message);
+            console.log('Error status [%s] with message [%s] inside makeSurePlaylistExists', response.error.status, response.error.message);
             callback(false);
         }
     });
@@ -502,7 +513,8 @@ function makeSurePlaylistExists(name, callback) {
 function handleArtistRequests(arr, callback) {
     let url = arr.pop();
     if (url) {
-        artistStep += 1;
+        // Adds to step the total of ids sent in request as parameters
+        artistStep += new URL(url).searchParams.get("ids").split(",").length;
         $.ajax({
             method: "PUT",
             url: url,
@@ -513,7 +525,7 @@ function handleArtistRequests(arr, callback) {
             },
             error: function (xhr) {
                 let response = xhr.responseJSON;
-                console.log('Error status [%s] with message [%s]', response.error.status, response.error.message);
+                console.log('Error status [%s] with message [%s] inside handleArtistRequests', response.error.status, response.error.message);
             }
         })
             .always(function () {
@@ -527,7 +539,8 @@ function handleArtistRequests(arr, callback) {
 function handleSavedRequests(arr, callback) {
     let url = arr.pop();
     if (url) {
-        trackStep += 1;
+        // Adds to step the total of ids sent in request as parameters
+        trackStep += new URL(url).searchParams.get("ids").split(",").length;
         $.ajax({
             method: "PUT",
             url: url,
@@ -538,7 +551,7 @@ function handleSavedRequests(arr, callback) {
             },
             error: function (xhr) {
                 let response = xhr.responseJSON;
-                console.log('Error status [%s] with message [%s]', response.error.status, response.error.message);
+                console.log('Error status [%s] with message [%s] inside handleSavedRequests', response.error.status, response.error.message);
             }
         })
             .always(function () {
@@ -556,27 +569,45 @@ function handlePlaylistRequestsWithTimeout(arr, callback, timeout) {
 }
 
 function handlePlaylistRequests(arr, callback) {
-    let url = arr.pop();
-    if (url) {
-        trackStep += 1;
-        $.ajax({
-            method: "POST",
-            url: url,
-            contentType: 'application/json',
-            headers: {
-                'Authorization': 'Bearer ' + token
-            },
-            success: function () {
-            },
-            error: function (xhr) {
-                let response = xhr.responseJSON;
-                console.log('Error status [%s] with message [%s]', response.error.status, response.error.message);
-                console.log('Track URI not found. Probably local file...');
+    let urlString = arr.pop();
+    if (urlString) {
+        let url = new URL(urlString);
+        // If for some reason the import file has local files, it will skip them here
+        let uriArray = url.searchParams.get("uris").split(",");
+        let iterator = uriArray.length;
+        while (iterator--) {
+            if (uriArray[iterator].startsWith("spotify:local")) {
+                // console.log('Found a local file inside import file [%s]. Skipping this one...', uriArray[iterator]);
+                uriArray.splice(iterator, 1);
             }
-        })
-            .always(function () {
-                handlePlaylistRequestsWithTimeout(arr, callback, spotifyConfig.slowdown_import);
+        }
+
+        if (!isEmpty(uriArray)) {
+            // Adds to step the total of ids sent in request as parameters
+            trackStep += uriArray.length;
+            // Setting the curated uris to the URL
+            url.searchParams.set("uris", uriArray.toString());
+            $.ajax({
+                method: "POST",
+                url: url.toString(),
+                contentType: 'application/json',
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                },
+                success: function () {
+                },
+                error: function (xhr) {
+                    let response = xhr.responseJSON;
+                    console.log('Error status [%s] with message [%s] inside handlePlaylistRequests', response.error.status, response.error.message);
+                }
             })
+                .always(function () {
+                    handlePlaylistRequestsWithTimeout(arr, callback, spotifyConfig.slowdown_import);
+                })
+        } else {
+            // If the uri array is empty (meaning it was only local files) then skip to next batch
+            handlePlaylistRequestsWithTimeout(arr, callback, spotifyConfig.slowdown_import);
+        }
     } else {
         callback();
     }
@@ -584,21 +615,26 @@ function handlePlaylistRequests(arr, callback) {
 
 function addToSaved(trackIds) {
     // We group track IDs in chunks of 50 as it's the limit per request
-    let groupedArray = createGroupedArray(trackIds, 50);
+    let groupedArray = createGroupedArray(trackIds.reverse(), 50);
     $.each(groupedArray, function (index, value) {
         savedQueue.push('https://api.spotify.com/v1/me/tracks?ids=' + value.toString());
+        savedQueueSize += value.length;
     });
 }
 
 function addToFollowing(artistIds) {
     // We group artist IDs in chunks of 50 as it's the limit per request
-    let groupedArray = createGroupedArray(artistIds, 50);
+    let groupedArray = createGroupedArray(artistIds.reverse(), 50);
     $.each(groupedArray, function (index, value) {
         artistQueue.push('https://api.spotify.com/v1/me/following?type=artist&ids=' + value.toString());
+        artistQueueSize += value.length;
     });
 }
 
-function compareUriTracks(imported, stored, addCallback) {
+function compareUriTracks(imported, stored, callback) {
+
+    let urisToAdd = [];
+
     $.each(imported, function (index, value) {
         let found = false;
         $.each(stored, function (index2, value2) {
@@ -607,9 +643,12 @@ function compareUriTracks(imported, stored, addCallback) {
             }
         });
         if (!found) {
-            addCallback(value.uri);
+            // addCallback(value.uri);
+            urisToAdd.push(value.uri);
         }
     });
+
+    callback(urisToAdd);
 }
 
 function compareIdTracks(imported, stored, callback) {
@@ -682,14 +721,22 @@ function loadTrackChunks(url, arr, callback) {
             if (!data) return;
             if ('items' in data) {
                 $.each(data.items, function (index, value) {
-                    if (value.track !== null) {
+                    // Checking if track is not local or null
+                    if (!value.is_local && value.track !== null) {
                         arr.push({id: value.track.id, uri: value.track.uri});
                     } else {
-                        console.log("track is null", value);
+                        console.log("Found invalid track. IS LOCAL [%s] IS TRACK NULL [%s]", value.is_local, value.track == null);
+                        console.log(value);
                     }
                 });
             } else {
-                arr.push({id: data.track.id, uri: data.track.uri});
+                // Checking if track is not local or null
+                if (!data.is_local && data.track !== null) {
+                    arr.push({id: data.track.id, uri: data.track.uri});
+                } else {
+                    console.log("Found invalid track. IS LOCAL [%s] IS TRACK NULL [%s]", value.is_local, value.track == null);
+                    console.log(value);
+                }
             }
             if (data.next) {
                 loadTrackChunksWithTimeout(data.next, arr, callback, spotifyConfig.slowdown_export);
@@ -699,7 +746,7 @@ function loadTrackChunks(url, arr, callback) {
         },
         error: function (xhr) {
             let response = xhr.responseJSON;
-            console.log('Error status [%s] with message [%s]', response.error.status, response.error.message);
+            console.log('Error status [%s] with message [%s] inside loadTrackChunks', response.error.status, response.error.message);
             if (tries++ < 3) {
                 console.log('Retrying [%s] with [%s] ms delay. Retry %s of 3...', url, spotifyConfig.slowdown_export, tries);
                 loadTrackChunksWithTimeout(url, arr, callback, spotifyConfig.slowdown_export);
@@ -756,7 +803,7 @@ function loadPlaylistChunks(url, arr, callback) {
         },
         error: function (xhr) {
             let response = xhr.responseJSON;
-            console.log('Error status [%s] with message [%s]', response.error.status, response.error.message);
+            console.log('Error status [%s] with message [%s] inside loadPlaylistChunks', response.error.status, response.error.message);
             if (tries++ < 3) {
                 console.log('Retrying [%s]. Retry %s of 3...', url, tries);
                 loadPlaylistChunks(url, arr, callback);
@@ -778,7 +825,7 @@ function handlePlaylistTracks(arr, result, callback) {
     loadTrackChunks(item.href, item.tracks, function () {
         delete item.href;
         result[item.name] = item;
-        if (arr.length === 0) {
+        if (isEmpty(arr)) {
             callback();
         } else {
             handlePlaylistTracks(arr, result, callback);
@@ -819,7 +866,7 @@ function loadArtistChunks(url, arr, callback) {
         },
         error: function (xhr) {
             let response = xhr.responseJSON;
-            console.log('Error status [%s] with message [%s]', response.error.status, response.error.message);
+            console.log('Error status [%s] with message [%s] inside loadArtistChunks', response.error.status, response.error.message);
             if (tries++ < 3) {
                 console.log('Retrying [%s]. Retry %s of 3...', url, tries);
                 loadArtistChunks(url, arr, callback);
