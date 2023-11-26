@@ -14,7 +14,7 @@ Instructions assumed that you already have a webserver (nginx, Caddy, etc.).
 3. Edit `config.json` with your own client id and redirect uri.
 4. Done.
 
-## [Q&A](wiki)
+## [Q&A](https://github.com/azhinu/backify/wiki)
 
 ## Credits
 This is fork of [Backify](https://gitlab.com/StongLory/backify) based on [My Spot Backup](https://github.com/secuvera/SpotMyBackup)
