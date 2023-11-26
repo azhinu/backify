@@ -39,7 +39,7 @@ jobs:
       - name: Install sponge
         run: sudo apt-get install moreutils
       - name: Modify config
-        run: jq --arg URL "$URL" --arg CLIENT_ID "$CLIENT_ID" '.spotifyConfig | .uri=$URL | .redirect_uri=$URL+"/login.html" | .client_id=$CLIENT_ID' config.json | sponge config.json
+        run: jq --arg URL "$URL" --arg CLIENT_ID "$CLIENT_ID" '.spotifyConfig.uri=$URL | .spotifyConfig.redirect_uri=$URL+"/login.html" | .spotifyConfig.client_id=$CLIENT_ID' config.json | sponge config.json
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v2
         with:
