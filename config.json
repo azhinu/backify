@@ -1,8 +1,8 @@
 {
   "spotifyConfig": {
-    "uri": "https://rwig.gitlab.io",
-    "redirect_uri": "https://rwig.gitlab.io/backify/login.html",
-    "client_id": "c99b1c6aa2d8465b98a2e4b442c474f2",
+    "uri": "url",
+    "redirect_uri": "url/login.html",
+    "client_id": "secret",
     "scope": "playlist-read-private playlist-modify-public playlist-modify-private user-library-read user-library-modify user-read-email user-follow-read user-follow-modify",
     "response_type": "token",
     "show_dialog": "true",
